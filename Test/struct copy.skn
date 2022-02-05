@@ -1,0 +1,19 @@
+school List >:a:> <(fish [] fish cons >(x <:a:<)> >(xs <:List >:a:> :< )> )< --this wouldn't make it through the parser
+school Tree >:a:> <(fish -<> fish -<= >(x <:a:< )> >(cs <:List >:Tree >:a:>:> :<)> )<
+school Maybe >:a:> <(fish Nothing fish Just >(a <:a:<)>)<
+fish head <:a:< >(xs <:List >:a:>:<)> <(mackerel >(xs)> <( >([])> <(null)< >(cons >(x)> >(_)>)> <(x)< )< )<
+fish tail <:List >:a:> :< >(xs <:List >:a:> :<)> <(mackerel >(xs)> <( >([])> <([])< >(cons >(_)> >(remainder)>)> <(remainder)< )< )<
+fish tree <:Tree >:a:> :< >(x >:a:>)> <(-<= >(x)> >([])>)<
+fish treeNode <:Maybe >:a:> :< >(tr <:Tree >:a:> :<)> <(mackerel >(tr)> <(>(-<>)> <(Nothing)< >(-<= >(x)> >(_)>)> <(Just >(x)>)< )< )<
+fish treeChildren <:List >:Tree >:a:>:> :< >(tr <:Tree >:a:> :<)> <(mackerel >(tr)> <( >(-<>)> <([])< >(-<= >(_)> >(cs)>)> <(cs)< )< )<
+fish flattenTree <:List >:a:> :< >(tr <:Tree >:List >:a:>:> :<)> <(mackerel >(tr)> <( >(-<>)> <([])< >(-<= >(n)> >([])>)> <(cons >(n)> >([])>)< >(-<= >(n)> >(cs)>)> <(cons >(n)> >(concatMap >(flattenTree)> >(cs)>)>)< )< )<
+
+
+
+
+
+
+
+
+
+

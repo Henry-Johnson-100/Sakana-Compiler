@@ -1,0 +1,7 @@
+:set -package unordered-containers
+:set -package hashable-1.3.2.0
+:set -XMagicHash
+:set -XDeriveGeneric
+:set stop :list
+:set +s
+:set +t

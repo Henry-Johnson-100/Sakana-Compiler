@@ -1,0 +1,148 @@
+cabal-version:      2.4
+name:               Sakana-Compiler
+version:            1.0.0.0
+
+-- A short (one-line) description of the package.
+synopsis: An LLVM targeting compiler for the Sakana functional language.
+
+-- A longer description of the package.
+description: See README.md
+
+-- A URL where users can report bugs.
+-- bug-reports:
+
+-- The license under which the package is released.
+license: GPL-3.0-or-later
+author:             Henry-Johnson-100
+maintainer:         hencutJohnson@gmail.com
+
+-- A copyright notice.
+-- copyright:
+-- category:
+extra-source-files: CHANGELOG.md
+
+executable Sakanac
+    main-is:          Main.hs
+
+    --Modules included in this executable, other than Main.
+    other-modules:
+        Exception.Base
+        Interpreter.Main
+        Interpreter.Environment
+        Interpreter.Inspection
+        Interpreter.SknStdLib.IO
+        Interpreter.SknStdLib.Std
+        Interpreter.SknStdLib.Type
+        Parser.Main
+        Parser.Core
+        Parser.Syntax
+        Test.Core
+        Util.Classes
+        Util.General
+        Util.Like
+        Util.String
+        Util.Tree
+
+    -- LANGUAGE extensions used by modules in this package.
+    other-extensions: 
+        MagicHash
+        DeriveGeneric
+
+    -- other-extensions:
+    build-depends:    
+        base >= 4.8.0.0
+      , ghc-prim >= 0.5.0
+      , tasty >= 0.7 && < 1.4.1
+      , tasty-hunit ^>=0.10.0.3
+      , parsec == 3.1.14.0
+      , hashable == 1.3.3.0
+      , unordered-containers == 0.2.14.0
+    hs-source-dirs:   
+        app
+        app/Exception
+        app/Interpreter
+        app/Interpreter/SknStdLib
+        app/Parser
+        app/Test
+        app/Util
+        Test
+    default-language: Haskell2010
+
+      
+test-suite ParserTest
+    default-language:
+        Haskell2010
+    type:
+        exitcode-stdio-1.0
+    hs-source-dirs:
+        app
+        app/Exception
+        app/Parser
+        app/Test
+        app/Util
+        Test
+    main-is:
+        ParserTest.hs
+    other-modules:
+        Exception.Base
+        Parser.Main
+        Parser.Core
+        Parser.Syntax
+        Test.Core
+        Util.Classes
+        Util.General
+        Util.Like
+        Util.String
+        Util.Tree
+
+    build-depends:
+        base >= 4.8.0.0
+      , ghc-prim >= 0.5.0
+      , tasty >= 0.7 && < 1.4.1
+      , tasty-hunit ^>=0.10.0.3
+      , parsec == 3.1.14.0
+      , hashable == 1.3.3.0
+      , unordered-containers == 0.2.14.0
+
+test-suite InterpreterTest
+    default-language:
+        Haskell2010
+    type:
+        exitcode-stdio-1.0
+    hs-source-dirs:
+        app
+        app/Exception
+        app/Interpreter
+        app/Interpreter/SknStdLib
+        app/Parser
+        app/Test
+        app/Util
+        Test
+    main-is:
+        InterpreterTest.hs
+    other-modules:
+        Exception.Base
+        Interpreter.Main
+        Interpreter.Environment
+        Interpreter.Inspection
+        Interpreter.SknStdLib.IO
+        Interpreter.SknStdLib.Std
+        Interpreter.SknStdLib.Type
+        Parser.Main
+        Parser.Core
+        Parser.Syntax
+        Test.Core
+        Util.Classes
+        Util.General
+        Util.Like
+        Util.String
+        Util.Tree
+
+    build-depends:
+        base >= 4.8.0.0
+      , ghc-prim >= 0.5.0
+      , tasty >= 0.7 && < 1.4.1
+      , tasty-hunit ^>=0.10.0.3
+      , parsec == 3.1.14.0
+      , hashable == 1.3.3.0
+      , unordered-containers == 0.2.14.0

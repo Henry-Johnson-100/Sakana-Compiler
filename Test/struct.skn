@@ -1,0 +1,82 @@
+lets just have a draft implementation of trees here complete with a made-up type system
+
+where >:_:> is type parameterization
+
+school List >:a:>
+  <(
+
+    fish [] 
+
+    fish cons
+      >(x 
+        <:a:<
+      )>
+      >(xs
+        <:List 
+          >:a:>
+        :<
+      )>
+  )<
+
+use mackerel for pattern matching?
+fish head <:a:< 
+  >(xs <:List >:a:>:<)>
+  <(
+    mackerel
+      >(xs)>
+      <(
+        >([])>
+          <(null)< this will throw an error in execution which is fine
+        >(cons >(x)> >(_)>)>
+          <(x)<
+      )<
+  )<
+
+mackerel above is like:
+case xs of
+  [] -> error "partial function"
+  ((:) x _) -> x
+
+
+fish tail <:List >:a:> :< 
+  >(xs <:List >:a:> :<)>
+  <(
+      mackerel
+        >(xs)>
+        <(
+          >([])> 
+            <([])<
+          >(cons >(_)> >(remainder)>)> 
+            <(remainder)<
+        )<
+  )<
+
+school Tree >:a:> 
+  <(
+    fish -<>
+    fish -<= >(x <:a:< )> >(cs <:List >:Tree >:a:>:> :<)>
+  )<
+
+fish treeNode <:a:<
+  >(tr <:Tree >:a:> :<)>
+  <(
+    mackerel
+      >(tr)>
+      <(
+        >(-<>)> <(null)<
+        >(-<= >(x)> >(_)>)> <(x)<
+      )<
+  )<
+
+fish treeChildren <:List >:Tree >:a:>:> :<
+  >(tr <:Tree >:a:> :<)>
+  <(
+    mackerel
+      >(tr)>
+      <(
+        >(-<>)> <([])<
+        >(-<= >(_)> >(cs)>)> <(cs)<
+      )<
+  )<
+
+fish flattenTree <:List >:a:> :< >(tr <:Tree >:List >:a:>:> :<)> <(mackerel >(tr)> <( >(-<>)> <([])< >(-<= >(n)> >([])>)> <(cons >(n)> >([])>)< >(-<= >(n)> >(cs)>)> <(cons >(n)> >(concatMap >(flattenTree)> >(cs)>)>)< )< )<

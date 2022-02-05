@@ -1,0 +1,5 @@
+dist-newstyle/*
+*.vscode
+scratch/*
+Test/TestRefFunctions.sakana
+interpretsknstdlibbr.txt
