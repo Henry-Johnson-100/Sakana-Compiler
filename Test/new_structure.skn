@@ -1,0 +1,216 @@
+shoal new_sakana_grammar >(Foldable >(Foldable)>)> <(
+#this defines a module or package
+#The send fish denotes an import, there can be multiple, and an import can have arguments 
+  too
+#The Foldable argument denotes that only the fish "foldl'" is imported.
+
+#type annotations look like: >:a:> if a type contains other types
+  and <:a:< for a value that is a type
+
+
+school List >:a:>
+#Type parameterized 
+#This is the type constructor, like Haskell
+  <(
+
+    #Data constructors can have implicit or explicit trailing return annotations
+    fish []
+      <:List >:a:> :<
+      lamprey
+      #implicit or explicit lamprey keyword
+        <()<
+
+    fish cons
+      >(x <:a:<)>
+      >(xs <:List >:a:> :<)>
+      <(List
+          >(x)>
+          >(xs)>
+      )<
+
+  )< 
+#This block contains the data constructor functions
+
+#Here is the same school definition without the comments and all explicit grammar
+
+school List
+  >:a:>
+  <(
+    fish []
+      <:List >:a:> :<
+      lamprey
+        <()<
+
+    fish :
+      <:List >:a:> :<
+      lamprey
+        >(x <:a:< )>
+        >(xs <:List >:a:> :< )>
+        <( >(x)> >(xs)> )<
+  )<
+
+#The return fish in each data constructor is a structure mapping, so it can contain nothing
+#and that nothing, in the case of '[]' is still of type 'List'
+
+#here is a function outside of a struct definition
+
+fish tail
+  <:List >:a:> :<
+  lamprey
+    >(xs <:List >:a:> :<)<
+    <(
+      mackerel >(xs)>   #pattern match
+        >([])>
+          <([])<
+
+        >(: >(x)> >(xs)>)>
+          <(xs)<
+    )<
+
+#Let us introduce a new construct, the function's prototype, its type annotation
+
+fish tail
+  >:List >:a:> :> 
+  <:List >:a:> :<
+
+  >(xs)>
+  <(
+    mackerel >(xs)>
+      >(: >(x)> >(xs)>)>
+      <(xs)<
+
+      >(other)>
+      <([])<
+  )<
+
+
+#here is an example typeclass or interface
+#with default definition as well as unimplemented definition
+
+species Defaultable >:a <:Eq:< :>
+  <(
+
+    fish default_value
+      <:a:<
+
+    fish is_default
+      >:a:>
+      >:a:>
+      <:Boolean:<
+
+      >(x)>
+      >(y)>
+      <(
+        == >(x)> >(y)>
+      )<
+
+  )<
+
+
+#some compiler tags are predefined:
+>(impure)>
+  bubbles up through all function calls and marks them as impure,
+  functions are assumed pure for optimizations like memoization
+>(tail_call)>
+  marks a function for tail-call optimization
+>(IR)>
+  marks a function as containing inline LLVMIR
+
+
+#Here is an example of an impure function
+fish >(impure)> get_input
+  <:String:<
+
+  <(dolphin >()> )<
+
+#This function is impure because it is doing IO, even though dolphin is already a known
+  impure function, so technically the annotation is not necessary as impure will already
+  bubble up.
+
+
+#Here is a global value
+fish TWENTY <:Int:< <(20)<
+
+#Here is a global mutable value
+fish >(mut)> NUMBER <:Int:< <(20)<
+
+#You access a global mutable value just like a function
+fish main <(NUMBER)< #returns 20
+
+#You mutate a mutable variable using its shoal or school accessor
+#You can access a mutable variable without its accessors if it's in the current shoal.
+fish main
+  <(
+    swim
+      >(new_sakana_grammar.NUMBER <(30)<)>
+      <(NUMBER)<
+  )<
+
+
+#What if we wanted to define algorithms on mutable data?
+#Like a foreach
+#I believe this is the tail recursive definition, so it can be annotated with that as well
+#It is also annotated as type_unsafe so that a function calling it will structurally scan its output for typechecking
+#type unsafe implies potential data race as well
+
+fish >(impure)> >(type_unsafe)> >(tail_call)>
+  foreach
+  >:
+    >:a:>
+    <:b:<
+  :>
+  >:List >:a:> :>
+  <:List >:b:> :<
+
+  lamprey
+    >(func)>
+    >(xs)>
+    <(
+      swim
+        >(target <( >(mut)> <:List >:a:> :< lamprey <(xs)< )<)>   #Not even sure this type annotation makes sense with a mutable value
+        <(
+          mackerel >(target)>
+            >(: >(y)> >(ys)> )>
+              <(
+                :
+                  >(func >(y)> )>
+                  >(foreach >(func)> >(ys)> )>
+              )<
+
+            >(other)>
+              <([])<
+        )<
+    )<
+
+
+fish
+  length
+  >:List >:a:> :>
+  <:Int:<
+
+  lamprey
+    >(xs)>
+    >(
+      fish >(tail_call)> 
+        length'
+        >:List >:a:> :>
+        >:Int:>
+        <:Int:<
+
+        lamprey
+          >(xs)>
+          >(n)>
+          <(
+            fin
+              >(null >(xs)>)>
+              <(n)<
+              <(length' >(tail >(xs)> )> >(+ >(n)> >(1)>)>)<
+          )<
+    )>
+    <(
+      length' >(xs)> >(0)>
+    )<
+
+
+
+)<
