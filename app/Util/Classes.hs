@@ -18,8 +18,9 @@ import Util.General ((.<))
 -- Minimal complete definition:
 --
 -- > format
-class Format a where
+class Show a => Format a where
   format :: a -> String
+  format = show
   printf :: a -> IO ()
   printf = putStrLn . format
 
@@ -37,6 +38,9 @@ instance Format Int where
   format = show
 
 instance Format Integer where
+  format = show
+
+instance Format Char where
   format = show
 
 instance Format a => Format [a] where
@@ -61,7 +65,8 @@ class Eq a => Defaultable a where
   isDefault :: a -> Bool
   isDefault = (==) defaultValue
 
-class Like a where
+class Eq a => Like a where
   like :: a -> a -> Bool
+  like = (==)
   notLike :: a -> a -> Bool
   notLike = not .< like

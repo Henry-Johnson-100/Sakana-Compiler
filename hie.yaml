@@ -1,412 +1,298 @@
 cradle:
   cabal:
     - path: "app/Main.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Exception/Main.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Interpreter/Main.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
-
-    - path: "app/Interpreter/SknStdLib/Main.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Parser/Main.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Test/Main.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Util/Main.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "Test/Main.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Exception/Base.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Interpreter/Main.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Interpreter/Environment.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Interpreter/Inspection.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
-
-    - path: "app/Interpreter/SknStdLib/IO.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
-
-    - path: "app/Interpreter/SknStdLib/Std.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
-
-    - path: "app/Interpreter/SknStdLib/Type.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Parser/Main.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Parser/Core.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Parser/Syntax.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Test/Core.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Util/Classes.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Util/General.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Util/Like.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Util/String.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Util/Tree.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Exception/Exception/Base.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Exception/Interpreter/Main.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Exception/Interpreter/Environment.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Exception/Interpreter/Inspection.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
-
-    - path: "app/Exception/Interpreter/SknStdLib/IO.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
-
-    - path: "app/Exception/Interpreter/SknStdLib/Std.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
-
-    - path: "app/Exception/Interpreter/SknStdLib/Type.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Exception/Parser/Main.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Exception/Parser/Core.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Exception/Parser/Syntax.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Exception/Test/Core.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Exception/Util/Classes.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Exception/Util/General.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Exception/Util/Like.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Exception/Util/String.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Exception/Util/Tree.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Interpreter/Exception/Base.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Interpreter/Interpreter/Main.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Interpreter/Interpreter/Environment.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Interpreter/Interpreter/Inspection.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
-
-    - path: "app/Interpreter/Interpreter/SknStdLib/IO.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
-
-    - path: "app/Interpreter/Interpreter/SknStdLib/Std.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
-
-    - path: "app/Interpreter/Interpreter/SknStdLib/Type.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Interpreter/Parser/Main.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Interpreter/Parser/Core.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Interpreter/Parser/Syntax.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Interpreter/Test/Core.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Interpreter/Util/Classes.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Interpreter/Util/General.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Interpreter/Util/Like.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Interpreter/Util/String.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Interpreter/Util/Tree.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
-
-    - path: "app/Interpreter/SknStdLib/Exception/Base.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
-
-    - path: "app/Interpreter/SknStdLib/Interpreter/Main.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
-
-    - path: "app/Interpreter/SknStdLib/Interpreter/Environment.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
-
-    - path: "app/Interpreter/SknStdLib/Interpreter/Inspection.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
-
-    - path: "app/Interpreter/SknStdLib/Interpreter/SknStdLib/IO.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
-
-    - path: "app/Interpreter/SknStdLib/Interpreter/SknStdLib/Std.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
-
-    - path: "app/Interpreter/SknStdLib/Interpreter/SknStdLib/Type.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
-
-    - path: "app/Interpreter/SknStdLib/Parser/Main.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
-
-    - path: "app/Interpreter/SknStdLib/Parser/Core.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
-
-    - path: "app/Interpreter/SknStdLib/Parser/Syntax.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
-
-    - path: "app/Interpreter/SknStdLib/Test/Core.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
-
-    - path: "app/Interpreter/SknStdLib/Util/Classes.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
-
-    - path: "app/Interpreter/SknStdLib/Util/General.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
-
-    - path: "app/Interpreter/SknStdLib/Util/Like.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
-
-    - path: "app/Interpreter/SknStdLib/Util/String.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
-
-    - path: "app/Interpreter/SknStdLib/Util/Tree.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Parser/Exception/Base.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Parser/Interpreter/Main.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Parser/Interpreter/Environment.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Parser/Interpreter/Inspection.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
-
-    - path: "app/Parser/Interpreter/SknStdLib/IO.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
-
-    - path: "app/Parser/Interpreter/SknStdLib/Std.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
-
-    - path: "app/Parser/Interpreter/SknStdLib/Type.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Parser/Parser/Main.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Parser/Parser/Core.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Parser/Parser/Syntax.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Parser/Test/Core.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Parser/Util/Classes.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Parser/Util/General.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Parser/Util/Like.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Parser/Util/String.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Parser/Util/Tree.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Test/Exception/Base.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Test/Interpreter/Main.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Test/Interpreter/Environment.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Test/Interpreter/Inspection.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
-
-    - path: "app/Test/Interpreter/SknStdLib/IO.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
-
-    - path: "app/Test/Interpreter/SknStdLib/Std.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
-
-    - path: "app/Test/Interpreter/SknStdLib/Type.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Test/Parser/Main.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Test/Parser/Core.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Test/Parser/Syntax.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Test/Test/Core.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Test/Util/Classes.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Test/Util/General.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Test/Util/Like.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Test/Util/String.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Test/Util/Tree.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Util/Exception/Base.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Util/Interpreter/Main.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Util/Interpreter/Environment.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Util/Interpreter/Inspection.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
-
-    - path: "app/Util/Interpreter/SknStdLib/IO.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
-
-    - path: "app/Util/Interpreter/SknStdLib/Std.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
-
-    - path: "app/Util/Interpreter/SknStdLib/Type.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Util/Parser/Main.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Util/Parser/Core.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Util/Parser/Syntax.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Util/Test/Core.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Util/Util/Classes.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Util/Util/General.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Util/Util/Like.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Util/Util/String.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app/Util/Util/Tree.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "Test/Exception/Base.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "Test/Interpreter/Main.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "Test/Interpreter/Environment.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "Test/Interpreter/Inspection.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
-
-    - path: "Test/Interpreter/SknStdLib/IO.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
-
-    - path: "Test/Interpreter/SknStdLib/Std.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
-
-    - path: "Test/Interpreter/SknStdLib/Type.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "Test/Parser/Main.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "Test/Parser/Core.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "Test/Parser/Syntax.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "Test/Test/Core.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "Test/Util/Classes.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "Test/Util/General.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "Test/Util/Like.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "Test/Util/String.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "Test/Util/Tree.hs"
-      component: "Sakana-Compiler:exe:Sakanac"
+      component: "Sakana-Compiler:exe:SakanaLint"
 
     - path: "app"
       component: "Sakana-Compiler:test:ParserTest"
@@ -425,27 +311,3 @@ cradle:
 
     - path: "Test"
       component: "Sakana-Compiler:test:ParserTest"
-
-    - path: "app"
-      component: "Sakana-Compiler:test:InterpreterTest"
-
-    - path: "app/Exception"
-      component: "Sakana-Compiler:test:InterpreterTest"
-
-    - path: "app/Interpreter"
-      component: "Sakana-Compiler:test:InterpreterTest"
-
-    - path: "app/Interpreter/SknStdLib"
-      component: "Sakana-Compiler:test:InterpreterTest"
-
-    - path: "app/Parser"
-      component: "Sakana-Compiler:test:InterpreterTest"
-
-    - path: "app/Test"
-      component: "Sakana-Compiler:test:InterpreterTest"
-
-    - path: "app/Util"
-      component: "Sakana-Compiler:test:InterpreterTest"
-
-    - path: "Test"
-      component: "Sakana-Compiler:test:InterpreterTest"
