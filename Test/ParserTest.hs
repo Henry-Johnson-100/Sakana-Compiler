@@ -10,7 +10,9 @@ main = defaultMain tests
 tests =
   testGroup
     "Parser Tests"
-    [valueLiteralParserTests]
+    [ valueLiteralParserTests,
+      reservedWordParserTests
+    ]
 
 valueLiteralParserTests =
   testGroup
@@ -171,6 +173,35 @@ valueLiteralParserTests =
         []
         ((SknVList . map SknVBool) [True, False, True, True, False])
         (tparse sknValLiteralParser "[True, False, True, True, False]")
+    ]
+
+reservedWordParserTests =
+  testGroup
+    "Reserved Keyword and Flag Parser Tests"
+    [ timedAssertEqual
+        1
+        "Parse fish"
+        []
+        Fish
+        (tparse (sknKeywordParser Fish) "fish"),
+      timedAssertEqual
+        1
+        "Parse some other keyword"
+        []
+        Lamprey
+        (tparse (sknKeywordParser Lamprey) "lamprey"),
+      timedAssertEqual
+        1
+        "Parse a flag"
+        []
+        Impure
+        (tparse sknFlagParser "Impure"),
+      timedAssertEqual
+        1
+        "Parse TailCall flag"
+        []
+        TailCall
+        (tparse sknFlagParser "TailCall")
     ]
 
 -- import Parser.Core

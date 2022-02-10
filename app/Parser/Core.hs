@@ -11,6 +11,8 @@ module Parser.Core
     valLiteralIntegerParser,
     valLiteralListParser,
     sknValLiteralParser,
+    sknKeywordParser,
+    sknFlagParser,
   )
 where
 
@@ -43,7 +45,7 @@ where
 -- generalParse,
 
 import qualified Control.Monad as CMonad
-import qualified Data.Char as DChar
+import qualified Data.Char as Char
 import qualified Data.Either as DEither
 import qualified Data.Functor.Identity as DFId
 import qualified Data.List as DList
@@ -71,6 +73,10 @@ type StringParser u = CharStreamParser String u
 type SknDataParser u = CharStreamParser Syntax.SknData u
 
 type SknValLiteralParser u = CharStreamParser Syntax.SknValLiteral u
+
+type SknKeywordParser u = CharStreamParser Syntax.SknKeyword u
+
+type SknFlagParser u = CharStreamParser Syntax.SknFlag u
 
 -- type KeywordParser u = Prs.ParsecT [Char] u DFId.Identity Syntax.Keyword
 
@@ -172,9 +178,6 @@ valLiteralPrimitiveParser =
       valLiteralStringParser
     ]
 
-sknValLiteralParser :: SknValLiteralParser u
-sknValLiteralParser = tryChoices [valLiteralPrimitiveParser, valLiteralListParser]
-
 valLiteralListParser :: SknValLiteralParser u
 valLiteralListParser = do
   Prs.char '['
@@ -197,6 +200,29 @@ valLiteralListParser = do
       Prs.char ','
       Prs.spaces
       sknValLiteralParser
+
+sknValLiteralParser :: SknValLiteralParser u
+sknValLiteralParser =
+  tryChoices [valLiteralPrimitiveParser, valLiteralListParser]
+    <?> "a literal value e.g. 1, True, \"><>\", \'A\', 50.4868675"
+
+----Keyword and Flag Parsers--------------------------------------------------------------
+------------------------------------------------------------------------------------------
+
+sknKeywordParser :: Syntax.SknKeyword -> SknKeywordParser u
+sknKeywordParser k = do
+  (Prs.string . showKeyword) k <?> ("a keyword: \"" ++ showKeyword k ++ "\".")
+  return k
+  where
+    showKeyword :: Syntax.SknKeyword -> String
+    showKeyword = map Char.toLower . show
+
+-- | Could cause some issues down the line.
+sknFlagParser :: SknFlagParser u
+sknFlagParser = do
+  flagStr <-
+    (tryChoices . map (Prs.string . show) . enumFrom) Syntax.Impure
+  (return . read) flagStr
 
 -- ----Data Parsers--------------------------------------------------------------------------
 -- ------------------------------------------------------------------------------------------
