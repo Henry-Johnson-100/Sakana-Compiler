@@ -116,28 +116,28 @@ valLiteralStringParser = do
       (Prs.char '"')
   (return . Syntax.SknVString . concat) string
   where
-    anyCharAsString :: Prs.ParsecT [Char] u DFId.Identity [Char]
+    anyCharAsString :: CharStreamParser String u
     anyCharAsString = do
       ch <- Prs.anyChar
       return [ch]
-    removeInvisibleSpacing :: Prs.ParsecT [Char] u DFId.Identity [Char]
+    removeInvisibleSpacing :: CharStreamParser String u
     removeInvisibleSpacing = do
       tryChoices [Prs.tab, Prs.newline, Prs.crlf]
       return ""
-    unescapeEscapedSpaces :: Prs.ParsecT [Char] u DFId.Identity [Char]
+    unescapeEscapedSpaces :: CharStreamParser String u
     unescapeEscapedSpaces =
       tryChoices
         [unescapeEscapedNewline, unescapeEscapedTab, unescapeEscapedCarriageReturn]
       where
-        unescapeEscapedNewline :: Prs.ParsecT [Char] u DFId.Identity [Char]
+        unescapeEscapedNewline :: CharStreamParser String u
         unescapeEscapedNewline = do
           Prs.string "\\n"
           return "\n"
-        unescapeEscapedTab :: Prs.ParsecT [Char] u DFId.Identity [Char]
+        unescapeEscapedTab :: CharStreamParser String u
         unescapeEscapedTab = do
           Prs.string "\\t"
           return "\t"
-        unescapeEscapedCarriageReturn :: Prs.ParsecT [Char] u DFId.Identity [Char]
+        unescapeEscapedCarriageReturn :: CharStreamParser String u
         unescapeEscapedCarriageReturn = do
           Prs.string "\\r"
           return "\r"
@@ -162,7 +162,7 @@ valLiteralDoubleParser = do
     )
     (integerDigits ++ doubleDigits)
   where
-    doubleSuffix :: Prs.ParsecT [Char] u DFId.Identity [Char]
+    doubleSuffix :: CharStreamParser String u
     doubleSuffix = do
       decimal <- Prs.char '.'
       remainingDigits <- Prs.many1 Prs.digit
