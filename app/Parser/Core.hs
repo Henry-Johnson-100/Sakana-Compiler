@@ -8,7 +8,9 @@ module Parser.Core
     valLiteralBoolParser,
     valLiteralCharParser,
     valLiteralDoubleParser,
-    valLiteralIntegerParser
+    valLiteralIntegerParser,
+    valLiteralListParser,
+    sknValLiteralParser,
   )
 where
 
@@ -148,22 +150,53 @@ valLiteralDoubleParser :: SknValLiteralParser u
 valLiteralDoubleParser = do
   maybeNegation <- (Prs.optionMaybe . Prs.char) '-'
   integerDigits <- Prs.many1 Prs.digit
-  maybeDoubleSuffix <- Prs.optionMaybe doubleSuffix
-  (return . Syntax.SknVDouble . readDouble) $
-    composeNum maybeNegation integerDigits maybeDoubleSuffix
+  doubleDigits <- doubleSuffix
+  ( return . Syntax.SknVDouble . read
+      . (\x -> Maybe.maybe x (flip (:) x) maybeNegation)
+    )
+    (integerDigits ++ doubleDigits)
   where
     doubleSuffix :: Prs.ParsecT [Char] u DFId.Identity [Char]
     doubleSuffix = do
       decimal <- Prs.char '.'
       remainingDigits <- Prs.many1 Prs.digit
       return (decimal : remainingDigits)
-    readDouble :: String -> Double
-    readDouble = read
-    composeNum :: Maybe Char -> [Char] -> Maybe [Char] -> [Char]
-    composeNum mNeg intD mDSuf =
-      let neg = Maybe.maybe [] UGen.listSingleton mNeg
-          doubleSuffix = Maybe.fromMaybe [] mDSuf
-       in neg ++ intD ++ doubleSuffix
+
+valLiteralPrimitiveParser :: SknValLiteralParser u
+valLiteralPrimitiveParser =
+  tryChoices
+    [ valLiteralBoolParser,
+      valLiteralCharParser,
+      valLiteralDoubleParser,
+      valLiteralIntegerParser,
+      valLiteralStringParser
+    ]
+
+sknValLiteralParser :: SknValLiteralParser u
+sknValLiteralParser = tryChoices [valLiteralPrimitiveParser, valLiteralListParser]
+
+valLiteralListParser :: SknValLiteralParser u
+valLiteralListParser = do
+  Prs.char '['
+  Prs.spaces
+  maybeListContents <- Prs.optionMaybe listContentParser
+  Prs.spaces
+  Prs.char ']'
+  (return . Syntax.SknVList . Maybe.fromMaybe []) maybeListContents
+  where
+    listContentParser :: CharStreamParser [Syntax.SknValLiteral] u
+    listContentParser = do
+      Prs.spaces
+      headItem <- sknValLiteralParser
+      tailItems <- Prs.many listRetroContentParser
+      let listContents = headItem : tailItems
+      return listContents
+    listRetroContentParser :: SknValLiteralParser u
+    listRetroContentParser = do
+      Prs.spaces
+      Prs.char ','
+      Prs.spaces
+      sknValLiteralParser
 
 -- ----Data Parsers--------------------------------------------------------------------------
 -- ------------------------------------------------------------------------------------------
@@ -250,6 +283,10 @@ valLiteralDoubleParser = do
 tryChoices ::
   [Prs.ParsecT [Char] u DFId.Identity a] -> Prs.ParsecT [Char] u DFId.Identity a
 tryChoices = Prs.choice . (<$>) Prs.try
+
+allSpaces :: CharStreamParser String u
+allSpaces =
+  Prs.many $ tryChoices [Prs.char '\n', Prs.char '\t', Prs.char '\r', Prs.char ' ']
 
 -- -- | Takes a parser and ignores the spaces before and after it.
 -- stripSpaces ::

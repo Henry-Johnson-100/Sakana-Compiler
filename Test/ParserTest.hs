@@ -56,7 +56,121 @@ valueLiteralParserTests =
         "Can parse a string with a space"
         []
         (SknVString "Hello World!")
-        (tparse valLiteralStringParser "\"Hello World!\"")
+        (tparse valLiteralStringParser "\"Hello World!\""),
+      timedAssertEqual
+        1
+        "can parse a positive Integer"
+        []
+        (SknVInteger 2)
+        (tparse valLiteralIntegerParser "2"),
+      timedAssertEqual
+        1
+        "can parse a negative Integer"
+        []
+        (SknVInteger (-2))
+        (tparse valLiteralIntegerParser "-2"),
+      timedAssertEqual
+        1
+        "Can parse a whole double"
+        []
+        (SknVDouble 2.0)
+        (tparse valLiteralDoubleParser "2.0"),
+      timedAssertEqual
+        1
+        "Can parse an arbitrary double"
+        []
+        (SknVDouble 4.7685)
+        (tparse valLiteralDoubleParser "4.7685"),
+      timedAssertEqual
+        1
+        "Can parse a negative arbitrary double"
+        []
+        (SknVDouble (-4.7685))
+        (tparse valLiteralDoubleParser "-4.7685"),
+      timedAssertEqual
+        1
+        "literal parser differentiates Bools"
+        []
+        (SknVBool True)
+        (tparse sknValLiteralParser "True"),
+      timedAssertEqual
+        1
+        "literal parser differentiates Chars"
+        []
+        (SknVChar '.')
+        (tparse sknValLiteralParser "\'.\'"),
+      timedAssertEqual
+        1
+        "literal parser differentiates Strings"
+        []
+        (SknVString ".")
+        (tparse sknValLiteralParser "\".\""),
+      timedAssertEqual
+        1
+        "literal parser differentiates positive integers"
+        []
+        (SknVInteger 14)
+        (tparse sknValLiteralParser "14"),
+      timedAssertEqual
+        1
+        "literal parser differentiates negatives integers"
+        []
+        (SknVInteger (-460))
+        (tparse sknValLiteralParser "-460"),
+      timedAssertEqual
+        1
+        "literal parser differentiates positive doubles"
+        []
+        (SknVDouble 48.2)
+        (tparse sknValLiteralParser "48.2"),
+      timedAssertEqual
+        1
+        "literal parser differentiates negative doubles"
+        []
+        (SknVDouble (-587.3465))
+        (tparse sknValLiteralParser "-587.3465"),
+      timedAssertEqual
+        1
+        "Can parse an empty list"
+        []
+        (SknVList [])
+        (tparse valLiteralListParser "[]"),
+      timedAssertEqual
+        1
+        "Can parse a well-formed list of one type"
+        []
+        ((SknVList . map SknVInteger) [1, 2, 3, 4])
+        (tparse valLiteralListParser "[1,2,3,4]"),
+      timedAssertEqual
+        1
+        "Can parse a list of ints and doubles"
+        []
+        ( SknVList
+            [ SknVInteger 1,
+              SknVDouble 2.4,
+              SknVInteger 5,
+              SknVDouble 9.78,
+              SknVDouble 57.89,
+              SknVInteger 100
+            ]
+        )
+        (tparse valLiteralListParser "[1,2.4,5,9.78,57.89,100]"),
+      timedAssertEqual
+        1
+        "Can parse nested lists"
+        []
+        ( SknVList
+            [ SknVList [SknVInteger 1],
+              SknVList [SknVList [SknVList [SknVBool False]]]
+            ]
+        )
+        (tparse valLiteralListParser "[[1], [[[False]]]]"),
+      timedAssertEqual
+        1
+        "literal parser can differentiate lists"
+        []
+        ((SknVList . map SknVBool) [True, False, True, True, False])
+        (tparse sknValLiteralParser "[True, False, True, True, False]")
     ]
 
 -- import Parser.Core
