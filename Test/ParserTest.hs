@@ -11,7 +11,8 @@ tests =
   testGroup
     "Parser Tests"
     [ valueLiteralParserTests,
-      reservedWordParserTests
+      reservedWordParserTests,
+      idParserTests
     ]
 
 valueLiteralParserTests =
@@ -202,6 +203,59 @@ reservedWordParserTests =
         []
         TailCall
         (tparse sknFlagParser "TailCall")
+    ]
+
+idParserTests =
+  testGroup
+    "Id Parser Tests"
+    [ timedAssertEqual
+        1
+        "Parse a letter ID"
+        []
+        (SknId "main")
+        (tparse sknIdParser "main"),
+      timedAssertEqual
+        1
+        "Parse a capitalized ID"
+        []
+        (SknId "Main")
+        (tparse sknIdParser "Main"),
+      timedAssertEqual
+        1
+        "Parse a symbol id"
+        []
+        (SknId "+")
+        (tparse sknIdParser "+"),
+      timedAssertEqual
+        1
+        "Parse an id with numbers after letter head."
+        []
+        (SknId "alpha123")
+        (tparse sknIdParser "alpha123"),
+      timedAssertEqual
+        1
+        "Parse an ID starting with symbol with numbers"
+        []
+        (SknId "+2xgood")
+        (tparse sknIdParser "+2xgood"),
+      timedAssertEqual
+        1
+        "Parse an ID with an accessor prefix"
+        []
+        (SknId "test.parser")
+        (tparse sknIdParser "test.parser"),
+      timedAssertEqual
+        1
+        "Parse an ID with assorted chars in accessor and accessee"
+        []
+        (SknId "test1.pars3rtests!#")
+        (tparse sknIdParser "test1.pars3rtests!#"),
+      timedAssertEqual
+        1
+        "Parse an arbitrarily nested ID"
+        []
+        (SknId "Test.Parser.Core1.@Test014_*")
+        (tparse sknIdParser "Test.Parser.Core1.@Test014_*")
     ]
 
 -- import Parser.Core

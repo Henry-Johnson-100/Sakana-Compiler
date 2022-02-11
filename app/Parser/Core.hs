@@ -13,6 +13,7 @@ module Parser.Core
     sknValLiteralParser,
     sknKeywordParser,
     sknFlagParser,
+    sknIdParser,
   )
 where
 
@@ -77,6 +78,8 @@ type SknValLiteralParser u = CharStreamParser Syntax.SknValLiteral u
 type SknKeywordParser u = CharStreamParser Syntax.SknKeyword u
 
 type SknFlagParser u = CharStreamParser Syntax.SknFlag u
+
+type SknIdParser u = CharStreamParser Syntax.SknId u
 
 -- type KeywordParser u = Prs.ParsecT [Char] u DFId.Identity Syntax.Keyword
 
@@ -223,6 +226,56 @@ sknFlagParser = do
   flagStr <-
     (tryChoices . map (Prs.string . show) . enumFrom) Syntax.Impure
   (return . read) flagStr
+
+----Id Parser-----------------------------------------------------------------------------
+------------------------------------------------------------------------------------------
+
+sknIdPrimitiveParser :: CharStreamParser String u
+sknIdPrimitiveParser = do
+  idHead <-
+    Prs.letter <|> validIdSymbolParser
+      <?> "letter or symbol, excluding parentheses, square brackets, or quotations."
+  idTail <-
+    Prs.many
+      (Prs.alphaNum <|> validIdSymbolParser)
+      <?> "alphanumeric character or\
+          \ symbol excluding parentheses, square brackets, or quotations."
+  return (idHead : idTail)
+  where
+    validIdSymbolParser :: CharStreamParser Char u
+    validIdSymbolParser = Prs.oneOf "!@#$%^&*-=_+,<>/?;:|`~{}"
+
+sknIdParser :: SknIdParser u
+sknIdParser = do
+  idHead <- sknIdPrimitiveParser
+  accessees <- Prs.many postAccessorParser
+  (return . Syntax.SknId . (++) idHead . concat) accessees
+  where
+    postAccessorParser :: CharStreamParser String u
+    postAccessorParser = do
+      dot <- Prs.char '.'
+      accessee <- sknIdPrimitiveParser
+      return (dot : accessee)
+
+-- sknIdParser :: SknIdParser u
+-- sknIdParser = do
+--   accessorPrefixes <- (Prs.many . Prs.try) accessorIdParser
+--   baseName <- Prs.many1 validIdCharParser
+--   (return . Syntax.SknId . (++) (concat accessorPrefixes)) baseName
+--   where
+--     validIdCharParser :: Prs.ParsecT [Char] u DFId.Identity Char
+--     validIdCharParser =
+--       tryChoices
+--         [ Prs.letter,
+--           Prs.oneOf "!@#$%^&*-=_+,<>/?;:|`~[]{}"
+--         ]
+--         <?> "valid ID character: letter or symbolic character, \
+--             \excluding: \' . \' \" \\  \'"
+--     accessorIdParser :: Prs.ParsecT [Char] u DFId.Identity [Char]
+--     accessorIdParser = do
+--       accessorId <- Prs.many1 validIdCharParser
+--       dot <- Prs.char '.'
+--       (return . (++) accessorId) [dot]
 
 -- ----Data Parsers--------------------------------------------------------------------------
 -- ------------------------------------------------------------------------------------------
