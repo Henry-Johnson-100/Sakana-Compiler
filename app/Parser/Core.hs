@@ -14,36 +14,9 @@ module Parser.Core
     sknKeywordParser,
     sknFlagParser,
     sknIdParser,
+    sknTokenBracketParser,
   )
 where
-
--- parse',
--- generalParsePreserveError,
--- getParseError,
--- boolParser,
--- stringParser,
--- numParser,
--- idParser,
--- dataParser,
--- genericKeywordParser,
--- genericBracketParser,
--- dataTokenParser,
--- dataIdParser,
--- keywordTokenParser,
--- inBracketParser,
--- keywordTreeParser,
--- idTreeParser,
--- dataTreeParser,
--- lampreyParser,
--- functionDefinitionParser,
--- functionCallParser,
--- swimParser,
--- fishBindParser,
--- shoalParser,
--- expressionParser,
--- globalStatementParser,
--- docParser,
--- generalParse,
 
 import qualified Control.Monad as CMonad
 import qualified Data.Char as Char
@@ -75,21 +48,21 @@ type SknDataParser u = CharStreamParser Syntax.SknData u
 
 type SknValLiteralParser u = CharStreamParser Syntax.SknValLiteral u
 
+type SknTypeLiteralParser u = CharStreamParser Syntax.SknType u
+
 type SknKeywordParser u = CharStreamParser Syntax.SknKeyword u
 
 type SknFlagParser u = CharStreamParser Syntax.SknFlag u
 
 type SknIdParser u = CharStreamParser Syntax.SknId u
 
--- type KeywordParser u = Prs.ParsecT [Char] u DFId.Identity Syntax.Keyword
+type SknTokenParser u = CharStreamParser Syntax.SknToken u
 
--- type DataParser u = Prs.ParsecT [Char] u DFId.Identity Syntax.Data
+type SknTokenStreamUnitParser u = CharStreamParser Syntax.TokenStreamUnit u
 
--- type TokenParser u = Prs.ParsecT [Char] u DFId.Identity Syntax.Token
+type SknSyntaxUnitParser u = CharStreamParser Syntax.SknSyntaxUnit u
 
--- type TokenSourceParser u = Prs.ParsecT [Char] u DFId.Identity Syntax.TokenSource
-
--- type TreeParser u = Prs.ParsecT [Char] u DFId.Identity [Syntax.SyntaxTree]
+type SknTreeParser u = CharStreamParser Syntax.SknTree u
 
 ----Value Literal Parsers-----------------------------------------------------------------
 ------------------------------------------------------------------------------------------
@@ -209,6 +182,44 @@ sknValLiteralParser =
   tryChoices [valLiteralPrimitiveParser, valLiteralListParser]
     <?> "a literal value e.g. 1, True, \"><>\", \'A\', 50.4868675"
 
+----Type Literal Parsers------------------------------------------------------------------
+------------------------------------------------------------------------------------------
+
+-- #TODO come back to these
+
+-- sknTIntegerParser :: SknTypeLiteralParser u
+-- sknTIntegerParser = Prs.string "Integer" >> return Syntax.SknTInteger
+
+-- skntTDoubleParser :: SknTypeLiteralParser u
+-- skntTDoubleParser = Prs.string "Double" >> return Syntax.SknTDouble
+
+-- sknTCharParser :: SknTypeLiteralParser u
+-- sknTCharParser = Prs.string "Char" >> return Syntax.SknTChar
+
+-- sknTStringParser :: SknTypeLiteralParser u
+-- sknTStringParser = Prs.string "String" >> return Syntax.SknTString
+
+-- sknTBoolParser :: SknTypeLiteralParser u
+-- sknTBoolParser = Prs.string "Bool" >> return Syntax.SknTBool
+
+-- sknTVarParser :: SknTypeLiteralParser u
+-- sknTVarParser = fmap (Syntax.SknTVar . Syntax.sknId) sknIdParser
+
+-- typeLiteralPrimitiveParser :: SknTypeLiteralParser u
+-- typeLiteralPrimitiveParser =
+--   tryChoices
+--     [ sknTIntegerParser,
+--       skntTDoubleParser,
+--       sknTCharParser,
+--       sknTStringParser,
+--       sknTBoolParser,
+--       sknTVarParser
+--     ]
+
+-- sknTypeLiteralParser :: SknTypeLiteralParser u
+-- sknTypeLiteralParser = do
+--   typeLiteralPrimitiveParser
+
 ----Keyword and Flag Parsers--------------------------------------------------------------
 ------------------------------------------------------------------------------------------
 
@@ -257,66 +268,66 @@ sknIdParser = do
       accessee <- sknIdPrimitiveParser
       return (dot : accessee)
 
--- sknIdParser :: SknIdParser u
--- sknIdParser = do
---   accessorPrefixes <- (Prs.many . Prs.try) accessorIdParser
---   baseName <- Prs.many1 validIdCharParser
---   (return . Syntax.SknId . (++) (concat accessorPrefixes)) baseName
---   where
---     validIdCharParser :: Prs.ParsecT [Char] u DFId.Identity Char
---     validIdCharParser =
---       tryChoices
---         [ Prs.letter,
---           Prs.oneOf "!@#$%^&*-=_+,<>/?;:|`~[]{}"
---         ]
---         <?> "valid ID character: letter or symbolic character, \
---             \excluding: \' . \' \" \\  \'"
---     accessorIdParser :: Prs.ParsecT [Char] u DFId.Identity [Char]
---     accessorIdParser = do
---       accessorId <- Prs.many1 validIdCharParser
---       dot <- Prs.char '.'
---       (return . (++) accessorId) [dot]
+----SknToken Parsers---------------------------------------------------------------------
+------------------------------------------------------------------------------------------
 
--- ----Data Parsers--------------------------------------------------------------------------
--- ------------------------------------------------------------------------------------------
+sknTokenDataParser :: SknTokenParser u
+sknTokenDataParser = fmap (Syntax.SknTokenData . Syntax.sknData) sknValLiteralParser
 
--- -- | A special kind of DataParser, since ID's are not evaluable data types, this parser
--- -- is NOT included in the
--- --
--- -- > dataParser :: DataParser u
--- --
--- -- function.
--- idParser :: DataParser u
--- idParser = do
---   accessorPrefixes <- (Prs.many . Prs.try) accessorIdParser
---   baseName <- Prs.many1 validIdCharParser
---   (return . Syntax.Id . (++) (concat accessorPrefixes)) baseName
---   where
---     validIdCharParser :: Prs.ParsecT [Char] u DFId.Identity Char
---     validIdCharParser =
---       tryChoices
---         [ Prs.letter,
---           Prs.oneOf "!@#$%^&*-=_+,<>/?;:|`~[]{}"
---         ]
---         <?> "valid ID character: alphanumeric character or symbolic character, \
---             \excluding: \' . \' \" \\  \'"
---     accessorIdParser :: Prs.ParsecT [Char] u DFId.Identity [Char]
---     accessorIdParser = do
---       accessorId <- Prs.many1 validIdCharParser
---       dot <- Prs.char '.'
---       (return . (++) accessorId) [dot]
+sknTokenKeywordParser :: Syntax.SknKeyword -> SknTokenParser u
+sknTokenKeywordParser = fmap Syntax.SknTokenKeyword . sknKeywordParser
 
--- dataParser :: DataParser u
--- dataParser =
---   tryChoices [numParser, stringParser, boolParser]
+sknTokenFlagParser :: SknTokenParser u
+sknTokenFlagParser = fmap Syntax.SknTokenFlag sknFlagParser
+
+sknTokenIdParser :: SknTokenParser u
+sknTokenIdParser = fmap Syntax.SknTokenId sknIdParser
+
+sknTokenBracketParser ::
+  Syntax.SknBracketType ->
+  Syntax.SknScopeType ->
+  Syntax.SknBracketTerminal ->
+  SknTokenParser u
+sknTokenBracketParser bt st Syntax.Open = do
+  Prs.char (if st == Syntax.Send then '>' else '<')
+  Prs.char (if bt == Syntax.Value then '(' else ':')
+  (return . Syntax.SknTokenBracket) (Syntax.SknBracket bt st Syntax.Open)
+sknTokenBracketParser bt st Syntax.Close = do
+  Prs.char (if bt == Syntax.Value then ')' else ':')
+  Prs.char (if st == Syntax.Send then '>' else '<')
+  (return . Syntax.SknTokenBracket) (Syntax.SknBracket bt st Syntax.Close)
+
+----TokenStreamUnit Parsers--------------------------------------------------------------
+------------------------------------------------------------------------------------------
+
+-- | Lift an SknTokenParser to an SknTokenStreamUnitParser
+sknTokenStreamUnitParser :: SknTokenParser u -> SknTokenStreamUnitParser u
+sknTokenStreamUnitParser stp = do
+  pos <- Prs.getPosition
+  t <- stp
+  let tokenStreamUnit =
+        CMonad.liftM2 (Syntax.StreamUnit t) Prs.sourceLine Prs.sourceColumn pos
+  return tokenStreamUnit
+
+----SknSyntaxUnit Parsers-----------------------------------------------------------------
+------------------------------------------------------------------------------------------
+
+-- | Lift an SknTokenStreamUnitParser, with a ScopeType, to an SknSyntaxUnitParser
+sknSyntaxUnitParser ::
+  SknTokenStreamUnitParser u -> Syntax.SknScopeType -> SknSyntaxUnitParser u
+sknSyntaxUnitParser = flip (fmap . Syntax.tsutosu)
+
+----SknTree Parsers-----------------------------------------------------------------------
+------------------------------------------------------------------------------------------
+
+-- piscisDefParser :: SknTreeParser u
+-- piscisDefParser = return (Syntax.SknTree Syntax.Literal UC.defaultValue)
+
+------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------
 
 -- ----Keyword Parsers-----------------------------------------------------------------------
 -- ------------------------------------------------------------------------------------------
-
--- genericKeywordParser :: Syntax.Keyword -> KeywordParser u
--- genericKeywordParser k = do
---   kStr <- (Prs.string . map DChar.toLower . show) k
---   return k
 
 -- ----Token Parsers-------------------------------------------------------------------------
 -- ------------------------------------------------------------------------------------------

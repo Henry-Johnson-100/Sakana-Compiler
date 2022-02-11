@@ -12,7 +12,8 @@ tests =
     "Parser Tests"
     [ valueLiteralParserTests,
       reservedWordParserTests,
-      idParserTests
+      idParserTests,
+      sknTokenParserTests
     ]
 
 valueLiteralParserTests =
@@ -257,6 +258,61 @@ idParserTests =
         (SknId "Test.Parser.Core1.@Test014_*")
         (tparse sknIdParser "Test.Parser.Core1.@Test014_*")
     ]
+
+sknTokenParserTests =
+  testGroup
+    "SknToken Parser Tests"
+    [ timedAssertEqual
+        1
+        "An open Send value bracket"
+        []
+        (SknTokenBracket (SknBracket Value Send Open))
+        (sknTokenBracketP Value Send Open ">("),
+      timedAssertEqual
+        1
+        "A close Send value bracket"
+        []
+        (SknTokenBracket (SknBracket Value Send Close))
+        (sknTokenBracketP Value Send Close ")>"),
+      timedAssertEqual
+        1
+        "An open Return value bracket"
+        []
+        (SknTokenBracket (SknBracket Value Return Open))
+        (sknTokenBracketP Value Return Open "<("),
+      timedAssertEqual
+        1
+        "A close Return value bracket"
+        []
+        (SknTokenBracket (SknBracket Value Return Close))
+        (sknTokenBracketP Value Return Close ")<"),
+      timedAssertEqual
+        1
+        "An open Send Type bracket"
+        []
+        (SknTokenBracket (SknBracket Type Send Open))
+        (sknTokenBracketP Type Send Open ">:"),
+      timedAssertEqual
+        1
+        "A close Send value bracket"
+        []
+        (SknTokenBracket (SknBracket Type Send Close))
+        (sknTokenBracketP Type Send Close ":>"),
+      timedAssertEqual
+        1
+        "An open Return value bracket"
+        []
+        (SknTokenBracket (SknBracket Type Return Open))
+        (sknTokenBracketP Type Return Open "<:"),
+      timedAssertEqual
+        1
+        "A close Return value bracket"
+        []
+        (SknTokenBracket (SknBracket Type Return Close))
+        (sknTokenBracketP Type Return Close ":<")
+    ]
+  where
+    sknTokenBracketP bt st bterm str = tparse (sknTokenBracketParser bt st bterm) str
 
 -- import Parser.Core
 -- import Parser.Syntax as Syntax

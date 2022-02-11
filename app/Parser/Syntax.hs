@@ -20,6 +20,7 @@ module Parser.Syntax
     SknData (..),
     SknStaticTreeLabel (..),
     SknTree (..),
+    SknToken (..),
     SknSyntaxUnit (..),
     sknData,
     reservedWords,
@@ -52,7 +53,7 @@ type CharUnit = StreamUnit Char
 
 type TokenStreamUnit = StreamUnit SknToken
 
-data SknId = SknId !String deriving (Show, Eq, UC.Format)
+data SknId = SknId {sknId :: !String} deriving (Show, Eq, UC.Format)
 
 data SknBracketTerminal = Open | Close deriving (Show, Read, Eq, UC.Format)
 
@@ -93,9 +94,10 @@ data SknType
   | SknTString
   | SknTBool
   | SknTVar !String
-  | SknTStruct !String
-  | SknTConstraint !String !SknType
-  | SknTUntyped
+  | SknTData !String ![SknType]
+  | -- | SknTStruct !String
+    -- | SknTConstraint !String !SknType
+    SknTUntyped
   deriving (Show, Eq, UC.Format)
 
 -- | Describing values' literal construction
@@ -154,7 +156,7 @@ sknData svl =
         SknVChar _ -> SknTChar
         SknVString _ -> SknTString
         SknVBool _ -> SknTBool
-        SknVList _ -> SknTStruct "List"
+        SknVList _ -> SknTData "List" []
     )
 
 ----Instances-----------------------------------------------------------------------------
