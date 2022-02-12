@@ -12,6 +12,7 @@ tests =
     "Parser Tests"
     [ valueLiteralParserTests,
       reservedWordParserTests,
+      primitiveTypeLiteralParserTests,
       idParserTests,
       sknTokenParserTests
     ]
@@ -204,6 +205,31 @@ reservedWordParserTests =
         []
         TailCall
         (tparse sknFlagParser "TailCall")
+    ]
+
+primitiveTypeLiteralParserTests =
+  testGroup
+    "Primitive Type Literal Parser Tests"
+    [ timedAssertEqual
+        1
+        "Will parse any of the built-in type literals"
+        []
+        [SknTInteger, SknTDouble, SknTChar, SknTString, SknTBool]
+        ( tparse typeLiteralPrimitiveParser
+            <$> ["Integer", "Double", "Char", "String", "Bool"]
+        ),
+      timedAssertEqual
+        1
+        "Will parse a simple ID as a type variable."
+        []
+        (SknTVar "a")
+        (tparse typeLiteralPrimitiveParser "a"),
+      timedAssertEqual
+        1
+        "Will parse an arbitrary ID as a type variable."
+        []
+        (SknTVar "Some.Arbitrary.Type.Int_4$")
+        (tparse typeLiteralPrimitiveParser  "Some.Arbitrary.Type.Int_4$")
     ]
 
 idParserTests =

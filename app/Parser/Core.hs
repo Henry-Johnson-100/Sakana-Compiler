@@ -15,6 +15,7 @@ module Parser.Core
     sknFlagParser,
     sknIdParser,
     sknTokenBracketParser,
+    typeLiteralPrimitiveParser,
   )
 where
 
@@ -185,36 +186,34 @@ sknValLiteralParser =
 ----Type Literal Parsers------------------------------------------------------------------
 ------------------------------------------------------------------------------------------
 
--- #TODO come back to these
+sknTIntegerParser :: SknTypeLiteralParser u
+sknTIntegerParser = Prs.string "Integer" >> return Syntax.SknTInteger
 
--- sknTIntegerParser :: SknTypeLiteralParser u
--- sknTIntegerParser = Prs.string "Integer" >> return Syntax.SknTInteger
+skntTDoubleParser :: SknTypeLiteralParser u
+skntTDoubleParser = Prs.string "Double" >> return Syntax.SknTDouble
 
--- skntTDoubleParser :: SknTypeLiteralParser u
--- skntTDoubleParser = Prs.string "Double" >> return Syntax.SknTDouble
+sknTCharParser :: SknTypeLiteralParser u
+sknTCharParser = Prs.string "Char" >> return Syntax.SknTChar
 
--- sknTCharParser :: SknTypeLiteralParser u
--- sknTCharParser = Prs.string "Char" >> return Syntax.SknTChar
+sknTStringParser :: SknTypeLiteralParser u
+sknTStringParser = Prs.string "String" >> return Syntax.SknTString
 
--- sknTStringParser :: SknTypeLiteralParser u
--- sknTStringParser = Prs.string "String" >> return Syntax.SknTString
+sknTBoolParser :: SknTypeLiteralParser u
+sknTBoolParser = Prs.string "Bool" >> return Syntax.SknTBool
 
--- sknTBoolParser :: SknTypeLiteralParser u
--- sknTBoolParser = Prs.string "Bool" >> return Syntax.SknTBool
+sknTVarParser :: SknTypeLiteralParser u
+sknTVarParser = fmap (Syntax.SknTVar . Syntax.sknId) sknIdParser
 
--- sknTVarParser :: SknTypeLiteralParser u
--- sknTVarParser = fmap (Syntax.SknTVar . Syntax.sknId) sknIdParser
-
--- typeLiteralPrimitiveParser :: SknTypeLiteralParser u
--- typeLiteralPrimitiveParser =
---   tryChoices
---     [ sknTIntegerParser,
---       skntTDoubleParser,
---       sknTCharParser,
---       sknTStringParser,
---       sknTBoolParser,
---       sknTVarParser
---     ]
+typeLiteralPrimitiveParser :: SknTypeLiteralParser u
+typeLiteralPrimitiveParser =
+  tryChoices
+    [ sknTIntegerParser,
+      skntTDoubleParser,
+      sknTCharParser,
+      sknTStringParser,
+      sknTBoolParser,
+      sknTVarParser
+    ]
 
 -- sknTypeLiteralParser :: SknTypeLiteralParser u
 -- sknTypeLiteralParser = do
