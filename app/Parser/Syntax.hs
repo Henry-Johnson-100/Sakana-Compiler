@@ -19,13 +19,16 @@ module Parser.Syntax
     SknValLiteral (..),
     SknData (..),
     SknStaticTreeLabel (..),
-    SknTree (..),
+    LabeledTree (..),
+    -- SknTree (..),
     SknToken (..),
     SknSyntaxUnit (..),
     sknData,
     reservedWords,
     tsutosu,
     isKeywordRequiringId,
+    liftTreeWithLabel,
+    joinLabeledTree,
   )
 where
 
@@ -124,9 +127,10 @@ data SknStaticTreeLabel
   | LampreyExpr
   | IdCallExpr
   | PiscisDef
+  | NoLabel
   deriving (Show, Eq, UC.Format)
 
-data SknTree = SknTree !SknStaticTreeLabel !SyntaxTree deriving (Show, Eq)
+-- data SknTree = SknTree !SknStaticTreeLabel !SyntaxTree deriving (Show, Eq)
 
 type SyntaxTree = Tree.Tree SknSyntaxUnit
 
@@ -159,6 +163,34 @@ sknData svl =
         SknVList _ -> SknTData "List" []
     )
 
+----SknTree data type---------------------------------------------------------------------
+------------------------------------------------------------------------------------------
+
+data LabeledTree a
+  = EmptyLabeledTree
+  | LabeledTree !SknStaticTreeLabel !a ![LabeledTree a]
+  deriving (Show, Eq)
+
+instance Functor LabeledTree where
+  fmap f EmptyLabeledTree = EmptyLabeledTree
+  fmap f (LabeledTree label anode trs) = LabeledTree label (f anode) (map (fmap f) trs)
+
+instance Foldable LabeledTree where
+  foldr fabb b EmptyLabeledTree = b
+  foldr _ b (LabeledTree _ _ []) = b
+  foldr fabb b (LabeledTree label anode (tr : trs)) =
+    foldr fabb (fabb anode b) tr
+
+liftTreeWithLabel :: SknStaticTreeLabel -> Tree.Tree a -> LabeledTree a
+liftTreeWithLabel label Tree.Empty = EmptyLabeledTree
+liftTreeWithLabel label ((Tree.:-<-:) n cs) =
+  LabeledTree label n (map (liftTreeWithLabel label) cs)
+
+joinLabeledTree :: LabeledTree a -> Tree.Tree a
+joinLabeledTree EmptyLabeledTree = Tree.Empty
+joinLabeledTree (LabeledTree _ n trs) =
+  Data.List.foldl' (\b a -> (Tree.-<-) b (joinLabeledTree a)) (Tree.tree n) trs
+
 ----Instances-----------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------
 instance (UC.Format a) => UC.Format (StreamUnit a) where
@@ -178,8 +210,8 @@ instance UC.Format SknBracket where
       appendInOrder Open abr terml = abr ++ terml
       appendInOrder _ abr terml = terml ++ abr
 
-instance UC.Format SknTree where
-  format (SknTree label tr) = concat [UC.format label, ":\n", UC.format tr]
+-- instance UC.Format SknTree where
+--   format (SknTree label tr) = concat [UC.format label, ":\n", UC.format tr]
 
 instance UC.Format SknSyntaxUnit where
   format (SknSyntaxUnit token line context) =
@@ -194,6 +226,9 @@ instance UC.Defaultable SknData where
 instance UC.Defaultable SknSyntaxUnit where
   defaultValue =
     SknSyntaxUnit (SknTokenData UC.defaultValue) 0 Return
+
+instance UC.Defaultable SknStaticTreeLabel where
+  defaultValue = NoLabel
 
 ----Data functions------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------

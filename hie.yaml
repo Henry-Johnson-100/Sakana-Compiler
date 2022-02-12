@@ -311,3 +311,21 @@ cradle:
 
     - path: "Test"
       component: "Sakana-Compiler:test:ParserTest"
+
+    - path: "app"
+      component: "Sakana-Compiler:test:SyntaxTest"
+
+    - path: "app/Exception"
+      component: "Sakana-Compiler:test:SyntaxTest"
+
+    - path: "app/Parser"
+      component: "Sakana-Compiler:test:SyntaxTest"
+
+    - path: "app/Test"
+      component: "Sakana-Compiler:test:SyntaxTest"
+
+    - path: "app/Util"
+      component: "Sakana-Compiler:test:SyntaxTest"
+
+    - path: "Test"
+      component: "Sakana-Compiler:test:SyntaxTest"

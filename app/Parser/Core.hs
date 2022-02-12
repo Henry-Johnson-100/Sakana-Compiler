@@ -63,7 +63,7 @@ type SknTokenStreamUnitParser u = CharStreamParser Syntax.TokenStreamUnit u
 
 type SknSyntaxUnitParser u = CharStreamParser Syntax.SknSyntaxUnit u
 
-type SknTreeParser u = CharStreamParser Syntax.SknTree u
+-- type SknTreeParser u = CharStreamParser Syntax.SknTree u
 
 ----Value Literal Parsers-----------------------------------------------------------------
 ------------------------------------------------------------------------------------------
