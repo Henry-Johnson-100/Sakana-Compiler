@@ -175,7 +175,14 @@ valueLiteralParserTests =
         "literal parser can differentiate lists"
         []
         ((SknVList . map SknVBool) [True, False, True, True, False])
-        (tparse sknValLiteralParser "[True, False, True, True, False]")
+        (tparse sknValLiteralParser "[True, False, True, True, False]"),
+      timedAssertEqual
+        -- #TODO
+        1
+        "List literals can contain ID's NOT IMPLEMENTED"
+        []
+        True
+        False
     ]
 
 reservedWordParserTests =
@@ -229,7 +236,7 @@ primitiveTypeLiteralParserTests =
         "Will parse an arbitrary ID as a type variable."
         []
         (SknTVar "Some.Arbitrary.Type.Int_4$")
-        (tparse typeLiteralPrimitiveParser  "Some.Arbitrary.Type.Int_4$")
+        (tparse typeLiteralPrimitiveParser "Some.Arbitrary.Type.Int_4$")
     ]
 
 idParserTests =

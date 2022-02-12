@@ -29,11 +29,14 @@ module Parser.Syntax
     isKeywordRequiringId,
     liftTreeWithLabel,
     joinLabeledTree,
+    labeledTreeNode,
+    labeledTreeChildren,
   )
 where
 
 import qualified Data.Char
 import qualified Data.List
+import qualified Data.Maybe as Maybe
 import qualified Util.Classes as UC
 import Util.General ((.<))
 import qualified Util.Tree as Tree
@@ -76,7 +79,6 @@ data SknKeyword
   | School
   | Shoal
   | Swim
-  | Piscis
   | Lamprey
   | Fin
   | Mackerel
@@ -126,11 +128,9 @@ data SknStaticTreeLabel
   | MackerelExpr
   | LampreyExpr
   | IdCallExpr
-  | PiscisDef
+  | TypeAnnotation
   | NoLabel
   deriving (Show, Eq, UC.Format)
-
--- data SknTree = SknTree !SknStaticTreeLabel !SyntaxTree deriving (Show, Eq)
 
 type SyntaxTree = Tree.Tree SknSyntaxUnit
 
@@ -140,6 +140,7 @@ data SknToken
   | SknTokenKeyword !SknKeyword
   | SknTokenFlag !SknFlag
   | SknTokenId !SknId
+  | SknTokenTypeLiteral !SknType
   deriving (Show, Eq, UC.Format)
 
 data SknSyntaxUnit = SknSyntaxUnit
@@ -190,6 +191,14 @@ joinLabeledTree :: LabeledTree a -> Tree.Tree a
 joinLabeledTree EmptyLabeledTree = Tree.Empty
 joinLabeledTree (LabeledTree _ n trs) =
   Data.List.foldl' (\b a -> (Tree.-<-) b (joinLabeledTree a)) (Tree.tree n) trs
+
+labeledTreeNode :: LabeledTree a -> Maybe.Maybe a
+labeledTreeNode EmptyLabeledTree = Maybe.Nothing
+labeledTreeNode (LabeledTree _ x _) = Maybe.Just x
+
+labeledTreeChildren :: LabeledTree a -> [LabeledTree a]
+labeledTreeChildren EmptyLabeledTree = []
+labeledTreeChildren (LabeledTree _ _ cs) = cs
 
 ----Instances-----------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------

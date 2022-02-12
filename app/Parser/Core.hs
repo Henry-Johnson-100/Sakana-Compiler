@@ -1,6 +1,7 @@
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 
 {-# HLINT ignore "Use section" #-}
+{-# HLINT ignore "Use <&>" #-}
 module Parser.Core
   ( generalParse,
     generalParsePreserveError,
@@ -23,7 +24,7 @@ import qualified Control.Monad as CMonad
 import qualified Data.Char as Char
 import qualified Data.Either as DEither
 import qualified Data.Functor.Identity as DFId
-import qualified Data.List as DList
+import qualified Data.List
 import qualified Data.Maybe as Maybe
 {-
 For Text.Parsec
@@ -63,7 +64,10 @@ type SknTokenStreamUnitParser u = CharStreamParser Syntax.TokenStreamUnit u
 
 type SknSyntaxUnitParser u = CharStreamParser Syntax.SknSyntaxUnit u
 
--- type SknTreeParser u = CharStreamParser Syntax.SknTree u
+type SknTreeParser u = CharStreamParser [Tree.Tree Syntax.SknSyntaxUnit] u
+
+type SknLabeledTreeParser u =
+  CharStreamParser [Syntax.LabeledTree Syntax.SknSyntaxUnit] u
 
 ----Value Literal Parsers-----------------------------------------------------------------
 ------------------------------------------------------------------------------------------
@@ -270,18 +274,6 @@ sknIdParser = do
 ----SknToken Parsers---------------------------------------------------------------------
 ------------------------------------------------------------------------------------------
 
-sknTokenDataParser :: SknTokenParser u
-sknTokenDataParser = fmap (Syntax.SknTokenData . Syntax.sknData) sknValLiteralParser
-
-sknTokenKeywordParser :: Syntax.SknKeyword -> SknTokenParser u
-sknTokenKeywordParser = fmap Syntax.SknTokenKeyword . sknKeywordParser
-
-sknTokenFlagParser :: SknTokenParser u
-sknTokenFlagParser = fmap Syntax.SknTokenFlag sknFlagParser
-
-sknTokenIdParser :: SknTokenParser u
-sknTokenIdParser = fmap Syntax.SknTokenId sknIdParser
-
 sknTokenBracketParser ::
   Syntax.SknBracketType ->
   Syntax.SknScopeType ->
@@ -296,8 +288,31 @@ sknTokenBracketParser bt st Syntax.Close = do
   Prs.char (if st == Syntax.Send then '>' else '<')
   (return . Syntax.SknTokenBracket) (Syntax.SknBracket bt st Syntax.Close)
 
+-- #TEST
+sknTokenDataParser :: SknTokenParser u
+sknTokenDataParser = fmap (Syntax.SknTokenData . Syntax.sknData) sknValLiteralParser
+
+-- #TEST
+sknTokenKeywordParser :: Syntax.SknKeyword -> SknTokenParser u
+sknTokenKeywordParser = fmap Syntax.SknTokenKeyword . sknKeywordParser
+
+-- #TEST
+sknTokenFlagParser :: SknTokenParser u
+sknTokenFlagParser = fmap Syntax.SknTokenFlag sknFlagParser
+
+-- #TEST
+sknTokenIdParser :: SknTokenParser u
+sknTokenIdParser = fmap Syntax.SknTokenId sknIdParser
+
+-- #TEST
+sknPrimitiveTokenTypeLiteralParser :: SknTokenParser u
+sknPrimitiveTokenTypeLiteralParser =
+  fmap Syntax.SknTokenTypeLiteral typeLiteralPrimitiveParser
+
 ----TokenStreamUnit Parsers--------------------------------------------------------------
 ------------------------------------------------------------------------------------------
+
+-- #TEST
 
 -- | Lift an SknTokenParser to an SknTokenStreamUnitParser
 sknTokenStreamUnitParser :: SknTokenParser u -> SknTokenStreamUnitParser u
@@ -311,13 +326,166 @@ sknTokenStreamUnitParser stp = do
 ----SknSyntaxUnit Parsers-----------------------------------------------------------------
 ------------------------------------------------------------------------------------------
 
+-- #TEST
+
 -- | Lift an SknTokenStreamUnitParser, with a ScopeType, to an SknSyntaxUnitParser
 sknSyntaxUnitParser ::
   SknTokenStreamUnitParser u -> Syntax.SknScopeType -> SknSyntaxUnitParser u
 sknSyntaxUnitParser = flip (fmap . Syntax.tsutosu)
 
+-- #TEST
+suLiftTokenParser :: SknTokenParser u -> Syntax.SknScopeType -> SknSyntaxUnitParser u
+suLiftTokenParser tp = sknSyntaxUnitParser (sknTokenStreamUnitParser tp)
+
 ----SknTree Parsers-----------------------------------------------------------------------
 ------------------------------------------------------------------------------------------
+
+-- #TEST
+sknTreeKeywordParser :: Syntax.SknKeyword -> Syntax.SknScopeType -> SknTreeParser u
+sknTreeKeywordParser k st = do
+  k <- suLiftTokenParser (sknTokenKeywordParser k) st
+  return [Tree.tree k]
+
+-- #TEST
+sknIdTreeParser :: Syntax.SknScopeType -> SknTreeParser u
+sknIdTreeParser st = do
+  id' <- suLiftTokenParser sknTokenIdParser st
+  return [Tree.tree id']
+
+-- #TEST
+sknDataTreeParser :: Syntax.SknScopeType -> SknTreeParser u
+sknDataTreeParser st = do
+  d <- suLiftTokenParser sknTokenDataParser st
+  return [Tree.tree d]
+
+-- #TEST
+sknTreeInBracketToLabeledTree ::
+  Syntax.SknBracketType ->
+  Syntax.SknScopeType ->
+  Syntax.SknStaticTreeLabel ->
+  SknTreeParser u ->
+  SknLabeledTreeParser u
+sknTreeInBracketToLabeledTree bt st label p = do
+  sknTokenBracketParser bt st Syntax.Open
+  Prs.spaces
+  parseTrees <- p
+  Prs.spaces
+  sknTokenBracketParser bt st Syntax.Close
+  Prs.spaces
+  (return . map (Syntax.liftTreeWithLabel label)) parseTrees
+
+-- #TEST
+sknLabeledTreeInBracket ::
+  Syntax.SknBracketType ->
+  Syntax.SknScopeType ->
+  SknLabeledTreeParser u ->
+  SknLabeledTreeParser u
+sknLabeledTreeInBracket bt st p = do
+  sknTokenBracketParser bt st Syntax.Open
+  Prs.spaces
+  labeledTree <- p
+  Prs.spaces
+  sknTokenBracketParser bt st Syntax.Close
+  Prs.spaces
+  return labeledTree
+
+----SknLabeledTree Parsers----------------------------------------------------------------
+------------------------------------------------------------------------------------------
+
+-- #TEST
+liftTreeParserToLabeledTreeParser ::
+  Syntax.SknStaticTreeLabel -> SknTreeParser u -> SknLabeledTreeParser u
+liftTreeParserToLabeledTreeParser = fmap . map . Syntax.liftTreeWithLabel
+
+-- sknLampreyExprParser :: Syntax.SknScopeType -> SknLabeledTreeParser u
+-- sknLampreyExprParser st = do
+--   implicitKeyword <- Prs.optionMaybe (sknTreeKeywordParser Syntax.Lamprey st)
+--   paramsOrOther <- (Prs.many)
+--   Prs.spaces
+--   return []
+--   where
+--     lampreyParameterParser :: Syntax.SknScopeType -> SknLabeledTreeParser u
+--     lampreyParameterParser st =
+--       return []
+
+-- #TEST
+-- #TODO
+lampreyParser :: Syntax.SknScopeType -> SknLabeledTreeParser u
+lampreyParser st = do
+  implicitKeyword <- Prs.optionMaybe (sknTreeKeywordParser Syntax.Lamprey st)
+  Prs.spaces
+  lampreyParams <-
+    ( Prs.many
+        . sknLabeledTreeInBracket Syntax.Value Syntax.Send
+      )
+      (lampreyParameterParser Syntax.Send)
+      <?> "valid identifiers, function definitions or value literals."
+  Prs.spaces
+  value <-
+    sknLabeledTreeInBracket Syntax.Value Syntax.Return (expressionParser Syntax.Return)
+      <?> "an expression returing a value."
+  Prs.spaces
+  let lampreySU = getLampreyKeyword implicitKeyword value st
+      lampreyExprTree =
+        [ Syntax.liftTreeWithLabel Syntax.LampreyExpr (Tree.tree lampreySU)
+            -<** lampreyParams
+            -<** [value]
+        ]
+  return lampreyExprTree
+  where
+    getLampreyKeyword ::
+      Maybe.Maybe [Tree.Tree Syntax.SknSyntaxUnit] ->
+      [Syntax.LabeledTree Syntax.SknSyntaxUnit] ->
+      Syntax.SknScopeType ->
+      Syntax.SknSyntaxUnit
+    getLampreyKeyword implicitKeyword' alternativeLineSource st' =
+      let altLampreyLocation =
+            Maybe.fromMaybe
+              0
+              ( UGen.head' alternativeLineSource
+                  >>= Syntax.labeledTreeNode
+                  >>= (return . Syntax.sknUnitLine)
+              )
+       in Maybe.fromMaybe
+            ( Syntax.SknSyntaxUnit
+                (Syntax.SknTokenKeyword Syntax.Lamprey)
+                altLampreyLocation
+                st'
+            )
+            (implicitKeyword' >>= UGen.head' >>= Tree.treeNode)
+
+-- #TEST
+
+-- | Lamprey parameters can have function definitions, value ID's or literal values.
+-- #TODO Add a parser for a piscis in the id tree parser option.
+lampreyParameterParser :: Syntax.SknScopeType -> SknLabeledTreeParser u
+lampreyParameterParser st =
+  tryChoices
+    [ sknFunctionDefStatementParser st,
+      sknIdCallWithTypeAnnotation st,
+      (liftTreeParserToLabeledTreeParser Syntax.Literal . sknDataTreeParser) st
+    ]
+
+-- #TEST
+-- #TODO
+sknIdCallWithTypeAnnotation :: Syntax.SknScopeType -> SknLabeledTreeParser u
+sknIdCallWithTypeAnnotation st = do
+  return []
+
+-- #TEST
+-- #TODO
+typeAnnotationParser :: SknLabeledTreeParser u
+typeAnnotationParser = return []
+
+-- #TEST
+-- #TODO
+sknFunctionDefStatementParser :: Syntax.SknScopeType -> SknLabeledTreeParser u
+sknFunctionDefStatementParser st = return []
+
+-- #TEST
+-- #TODO
+expressionParser :: Syntax.SknScopeType -> SknLabeledTreeParser u
+expressionParser st = tryChoices [lampreyParser st]
 
 -- piscisDefParser :: SknTreeParser u
 -- piscisDefParser = return (Syntax.SknTree Syntax.Literal UC.defaultValue)
@@ -376,6 +544,17 @@ tryChoices = Prs.choice . (<$>) Prs.try
 allSpaces :: CharStreamParser String u
 allSpaces =
   Prs.many $ tryChoices [Prs.char '\n', Prs.char '\t', Prs.char '\r', Prs.char ' ']
+
+infixl 9 -<**
+
+(-<**) :: Syntax.LabeledTree a -> [[Syntax.LabeledTree a]] -> Syntax.LabeledTree a
+(-<**) = Data.List.foldl' attachLabeledTreeBranch
+  where
+    attachLabeledTreeBranch ::
+      Syntax.LabeledTree a -> [Syntax.LabeledTree a] -> Syntax.LabeledTree a
+    attachLabeledTreeBranch Syntax.EmptyLabeledTree _ = Syntax.EmptyLabeledTree
+    attachLabeledTreeBranch (Syntax.LabeledTree label n trs) xs =
+      Syntax.LabeledTree label n (trs ++ xs)
 
 -- -- | Takes a parser and ignores the spaces before and after it.
 -- stripSpaces ::
