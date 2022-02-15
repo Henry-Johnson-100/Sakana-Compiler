@@ -424,7 +424,120 @@ sknTokenParserTests =
         "Data is parsed as a SknTokenData - String"
         []
         (SknTokenData (SknData (SknVString "Hello World!") SknTString))
-        (tparse sknTokenDataParser "\"Hello World!\"")
+        (tparse sknTokenDataParser "\"Hello World!\""),
+      timedAssertEqual
+        1
+        "Parse a letter ID"
+        []
+        ((SknTokenData . sknData . SknVId) "main")
+        (tparse sknTokenDataParser "main"),
+      timedAssertEqual
+        1
+        "Parse a capitalized ID"
+        []
+        ((SknTokenData . sknData . SknVId) "Main")
+        (tparse sknTokenDataParser "Main"),
+      timedAssertEqual
+        1
+        "Parse a symbol id"
+        []
+        ((SknTokenData . sknData . SknVId) "+")
+        (tparse sknTokenDataParser "+"),
+      timedAssertEqual
+        1
+        "Parse an id with numbers after letter head."
+        []
+        ((SknTokenData . sknData . SknVId) "alpha123")
+        (tparse sknTokenDataParser "alpha123"),
+      timedAssertEqual
+        1
+        "Parse an ID starting with symbol with numbers"
+        []
+        ((SknTokenData . sknData . SknVId) "+2xgood")
+        (tparse sknTokenDataParser "+2xgood"),
+      timedAssertEqual
+        1
+        "Parse an ID with an accessor prefix"
+        []
+        ((SknTokenData . sknData . SknVId) "test.parser")
+        (tparse sknTokenDataParser "test.parser"),
+      timedAssertEqual
+        1
+        "Parse an ID with assorted chars in accessor and accessee"
+        []
+        ((SknTokenData . sknData . SknVId) "test1.pars3rtests!#")
+        (tparse sknTokenDataParser "test1.pars3rtests!#"),
+      timedAssertEqual
+        1
+        "Parse an arbitrarily nested ID"
+        []
+        ((SknTokenData . sknData . SknVId) "Test.Parser.Core1.@Test014_*")
+        (tparse sknTokenDataParser "Test.Parser.Core1.@Test014_*"),
+      timedAssertEqual
+        1
+        "Can parse an empty list"
+        []
+        ((SknTokenData . sknData . SknVList) [])
+        (tparse sknTokenDataParser "[]"),
+      timedAssertEqual
+        1
+        "Can parse a well-formed list of one type"
+        []
+        ((SknTokenData . sknData . SknVList . map SknVInteger) [1, 2, 3, 4])
+        (tparse sknTokenDataParser "[1,2,3,4]"),
+      timedAssertEqual
+        1
+        "Can parse a list of ints and doubles"
+        []
+        ( (SknTokenData . sknData . SknVList)
+            [ SknVInteger 1,
+              SknVDouble 2.4,
+              SknVInteger 5,
+              SknVDouble 9.78,
+              SknVDouble 57.89,
+              SknVInteger 100
+            ]
+        )
+        (tparse sknTokenDataParser "[1,2.4,5,9.78,57.89,100]"),
+      timedAssertEqual
+        1
+        "Can parse nested lists"
+        []
+        ( (SknTokenData . sknData . SknVList)
+            [ SknVList [SknVInteger 1],
+              SknVList [SknVList [SknVList [SknVBool False]]]
+            ]
+        )
+        (tparse sknTokenDataParser "[[1], [[[False]]]]"),
+      timedAssertEqual
+        1
+        "literal parser can differentiate lists"
+        []
+        ((SknTokenData . sknData . SknVList . map SknVBool) [True, False, True, True, False])
+        (tparse sknTokenDataParser "[True, False, True, True, False]"),
+      timedAssertEqual
+        1
+        "List literals can contain ID's NOT IMPLEMENTED"
+        []
+        ( (SknTokenData . sknData . SknVList . map SknVId)
+            ["id", "add", "subtract", "foldl`", "foldr", "map", "fmap"]
+        )
+        ( tparse
+            sknTokenDataParser
+            "[ id ,add ,subtract ,foldl` ,foldr ,map ,fmap]"
+        ),
+      timedAssertEqual
+        1
+        "Can parse an ill-formed list of one type (1)"
+        []
+        ((SknTokenData . sknData . SknVList . map SknVInteger) [1, 2, 3, 4])
+        (tparse sknTokenDataParser "[1,2,   3, 4 ]"),
+      timedAssertEqual
+        1
+        "Can parse an ill-formed list of one type (2)"
+        []
+        ((SknTokenData . sknData . SknVList . map SknVInteger) [1, 2, 3, 4, 6])
+        (tparse sknTokenDataParser "[     1,   2,   3, 4   ,  6 ]")
     ]
   where
     sknTokenBracketP bt st bterm str = tparse (sknTokenBracketParser bt st bterm) str

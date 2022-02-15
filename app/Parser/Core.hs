@@ -292,7 +292,6 @@ sknTokenBracketParser bt st Syntax.Close = do
   Prs.char (if st == Syntax.Send then '>' else '<')
   (return . Syntax.SknTokenBracket) (Syntax.SknBracket bt st Syntax.Close)
 
--- #TEST
 sknTokenDataParser :: SknTokenParser u
 sknTokenDataParser = fmap (Syntax.SknTokenData . Syntax.sknData) sknValLiteralParser
 
