@@ -177,12 +177,28 @@ valueLiteralParserTests =
         ((SknVList . map SknVBool) [True, False, True, True, False])
         (tparse sknValLiteralParser "[True, False, True, True, False]"),
       timedAssertEqual
-        -- #TODO
         1
         "List literals can contain ID's NOT IMPLEMENTED"
         []
-        True
-        False
+        ( (SknVList . map SknVId)
+            ["id", "add", "subtract", "foldl`", "foldr", "map", "fmap"]
+        )
+        ( tparse
+            sknValLiteralParser
+            "[ id ,add ,subtract ,foldl` ,foldr ,map ,fmap]"
+        ),
+      timedAssertEqual
+        1
+        "Can parse an ill-formed list of one type (1)"
+        []
+        ((SknVList . map SknVInteger) [1, 2, 3, 4])
+        (tparse valLiteralListParser "[1,2,   3, 4 ]"),
+      timedAssertEqual
+        1
+        "Can parse an ill-formed list of one type (2)"
+        []
+        ((SknVList . map SknVInteger) [1, 2, 3, 4, 6])
+        (tparse valLiteralListParser "[     1,   2,   3, 4   ,  6 ]")
     ]
 
 reservedWordParserTests =
@@ -246,49 +262,49 @@ idParserTests =
         1
         "Parse a letter ID"
         []
-        (SknId "main")
+        (SknVId "main")
         (tparse sknIdParser "main"),
       timedAssertEqual
         1
         "Parse a capitalized ID"
         []
-        (SknId "Main")
+        (SknVId "Main")
         (tparse sknIdParser "Main"),
       timedAssertEqual
         1
         "Parse a symbol id"
         []
-        (SknId "+")
+        (SknVId "+")
         (tparse sknIdParser "+"),
       timedAssertEqual
         1
         "Parse an id with numbers after letter head."
         []
-        (SknId "alpha123")
+        (SknVId "alpha123")
         (tparse sknIdParser "alpha123"),
       timedAssertEqual
         1
         "Parse an ID starting with symbol with numbers"
         []
-        (SknId "+2xgood")
+        (SknVId "+2xgood")
         (tparse sknIdParser "+2xgood"),
       timedAssertEqual
         1
         "Parse an ID with an accessor prefix"
         []
-        (SknId "test.parser")
+        (SknVId "test.parser")
         (tparse sknIdParser "test.parser"),
       timedAssertEqual
         1
         "Parse an ID with assorted chars in accessor and accessee"
         []
-        (SknId "test1.pars3rtests!#")
+        (SknVId "test1.pars3rtests!#")
         (tparse sknIdParser "test1.pars3rtests!#"),
       timedAssertEqual
         1
         "Parse an arbitrarily nested ID"
         []
-        (SknId "Test.Parser.Core1.@Test014_*")
+        (SknVId "Test.Parser.Core1.@Test014_*")
         (tparse sknIdParser "Test.Parser.Core1.@Test014_*")
     ]
 
@@ -342,7 +358,73 @@ sknTokenParserTests =
         "A close Return value bracket"
         []
         (SknTokenBracket (SknBracket Type Return Close))
-        (sknTokenBracketP Type Return Close ":<")
+        (sknTokenBracketP Type Return Close ":<"),
+      timedAssertEqual
+        1
+        "Data is parsed as a SknTokenData - Bool"
+        []
+        (SknTokenData (SknData (SknVBool True) SknTBool))
+        (tparse sknTokenDataParser "True"),
+      timedAssertEqual
+        1
+        "Data is parsed as a SknTokenData - Bool 2"
+        []
+        (SknTokenData (SknData (SknVBool False) SknTBool))
+        (tparse sknTokenDataParser "False"),
+      timedAssertEqual
+        1
+        "Data is parsed as a SknTokenData - +Integer"
+        []
+        (SknTokenData (SknData (SknVInteger 25) SknTInteger))
+        (tparse sknTokenDataParser "25"),
+      timedAssertEqual
+        1
+        "Data is parsed as a SknTokenData - -Integer"
+        []
+        (SknTokenData (SknData (SknVInteger (-25)) SknTInteger))
+        (tparse sknTokenDataParser "-25"),
+      timedAssertEqual
+        1
+        "Data is parsed as a SknTokenData - Integer (0)"
+        []
+        (SknTokenData (SknData (SknVInteger 0) SknTInteger))
+        (tparse sknTokenDataParser "0"),
+      timedAssertEqual
+        1
+        "Data is parsed as a SknTokenData - +Double"
+        []
+        (SknTokenData (SknData (SknVDouble 1.5) SknTDouble))
+        (tparse sknTokenDataParser "1.5"),
+      timedAssertEqual
+        1
+        "Data is parsed as a SknTokenData - -Double"
+        []
+        (SknTokenData (SknData (SknVDouble (-1.5)) SknTDouble))
+        (tparse sknTokenDataParser "-1.5"),
+      timedAssertEqual
+        1
+        "Data is parsed as a SknTokenData - Double (0)"
+        []
+        (SknTokenData (SknData (SknVDouble 0.0) SknTDouble))
+        (tparse sknTokenDataParser "0.0"),
+      timedAssertEqual
+        1
+        "Data is parsed as a SknTokenData - Char"
+        []
+        (SknTokenData (SknData (SknVChar '.') SknTChar))
+        (tparse sknTokenDataParser "\'.\'"),
+      timedAssertEqual
+        1
+        "Data is parsed as a SknTokenData - Char Space"
+        []
+        (SknTokenData (SknData (SknVChar ' ') SknTChar))
+        (tparse sknTokenDataParser "\' \'"),
+      timedAssertEqual
+        1
+        "Data is parsed as a SknTokenData - String"
+        []
+        (SknTokenData (SknData (SknVString "Hello World!") SknTString))
+        (tparse sknTokenDataParser "\"Hello World!\"")
     ]
   where
     sknTokenBracketP bt st bterm str = tparse (sknTokenBracketParser bt st bterm) str

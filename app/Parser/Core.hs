@@ -16,6 +16,7 @@ module Parser.Core
     sknFlagParser,
     sknIdParser,
     sknTokenBracketParser,
+    sknTokenDataParser,
     typeLiteralPrimitiveParser,
   )
 where
@@ -56,7 +57,7 @@ type SknKeywordParser u = CharStreamParser Syntax.SknKeyword u
 
 type SknFlagParser u = CharStreamParser Syntax.SknFlag u
 
-type SknIdParser u = CharStreamParser Syntax.SknId u
+-- type SknIdParser u = CharStreamParser Syntax.SknId u
 
 type SknTokenParser u = CharStreamParser Syntax.SknToken u
 
@@ -156,7 +157,8 @@ valLiteralPrimitiveParser =
       valLiteralCharParser,
       valLiteralDoubleParser,
       valLiteralIntegerParser,
-      valLiteralStringParser
+      valLiteralStringParser,
+      sknIdParser
     ]
 
 valLiteralListParser :: SknValLiteralParser u
@@ -180,12 +182,44 @@ valLiteralListParser = do
       Prs.spaces
       Prs.char ','
       Prs.spaces
-      sknValLiteralParser
+      literal <- sknValLiteralParser
+      Prs.spaces
+      return literal
 
 sknValLiteralParser :: SknValLiteralParser u
 sknValLiteralParser =
   tryChoices [valLiteralPrimitiveParser, valLiteralListParser]
     <?> "a literal value e.g. 1, True, \"><>\", \'A\', 50.4868675"
+
+----Id Parser-----------------------------------------------------------------------------
+------------------------------------------------------------------------------------------
+
+sknIdPrimitiveParser :: CharStreamParser String u
+sknIdPrimitiveParser = do
+  idHead <-
+    Prs.letter <|> validIdSymbolParser
+      <?> "letter or symbol, excluding parentheses, square brackets, or quotations."
+  idTail <-
+    Prs.many
+      (Prs.alphaNum <|> validIdSymbolParser)
+      <?> "alphanumeric character or\
+          \ symbol excluding parentheses, square brackets, or quotations."
+  return (idHead : idTail)
+  where
+    validIdSymbolParser :: CharStreamParser Char u
+    validIdSymbolParser = Prs.oneOf "!@#$%^&*-=_+,<>/?;:|`~{}"
+
+sknIdParser :: SknValLiteralParser u
+sknIdParser = do
+  idHead <- sknIdPrimitiveParser
+  accessees <- Prs.many postAccessorParser
+  (return . Syntax.SknVId . (++) idHead . concat) accessees
+  where
+    postAccessorParser :: CharStreamParser String u
+    postAccessorParser = do
+      dot <- Prs.char '.'
+      accessee <- sknIdPrimitiveParser
+      return (dot : accessee)
 
 ----Type Literal Parsers------------------------------------------------------------------
 ------------------------------------------------------------------------------------------
@@ -206,7 +240,7 @@ sknTBoolParser :: SknTypeLiteralParser u
 sknTBoolParser = Prs.string "Bool" >> return Syntax.SknTBool
 
 sknTVarParser :: SknTypeLiteralParser u
-sknTVarParser = fmap (Syntax.SknTVar . Syntax.sknId) sknIdParser
+sknTVarParser = fmap (Syntax.SknTVar . Maybe.fromJust . Syntax.unId) sknIdParser
 
 typeLiteralPrimitiveParser :: SknTypeLiteralParser u
 typeLiteralPrimitiveParser =
@@ -241,36 +275,6 @@ sknFlagParser = do
     (tryChoices . map (Prs.string . show) . enumFrom) Syntax.Impure
   (return . read) flagStr
 
-----Id Parser-----------------------------------------------------------------------------
-------------------------------------------------------------------------------------------
-
-sknIdPrimitiveParser :: CharStreamParser String u
-sknIdPrimitiveParser = do
-  idHead <-
-    Prs.letter <|> validIdSymbolParser
-      <?> "letter or symbol, excluding parentheses, square brackets, or quotations."
-  idTail <-
-    Prs.many
-      (Prs.alphaNum <|> validIdSymbolParser)
-      <?> "alphanumeric character or\
-          \ symbol excluding parentheses, square brackets, or quotations."
-  return (idHead : idTail)
-  where
-    validIdSymbolParser :: CharStreamParser Char u
-    validIdSymbolParser = Prs.oneOf "!@#$%^&*-=_+,<>/?;:|`~{}"
-
-sknIdParser :: SknIdParser u
-sknIdParser = do
-  idHead <- sknIdPrimitiveParser
-  accessees <- Prs.many postAccessorParser
-  (return . Syntax.SknId . (++) idHead . concat) accessees
-  where
-    postAccessorParser :: CharStreamParser String u
-    postAccessorParser = do
-      dot <- Prs.char '.'
-      accessee <- sknIdPrimitiveParser
-      return (dot : accessee)
-
 ----SknToken Parsers---------------------------------------------------------------------
 ------------------------------------------------------------------------------------------
 
@@ -302,7 +306,7 @@ sknTokenFlagParser = fmap Syntax.SknTokenFlag sknFlagParser
 
 -- #TEST
 sknTokenIdParser :: SknTokenParser u
-sknTokenIdParser = fmap Syntax.SknTokenId sknIdParser
+sknTokenIdParser = fmap (Syntax.SknTokenData . Syntax.sknData) sknIdParser
 
 -- #TEST
 sknPrimitiveTokenTypeLiteralParser :: SknTokenParser u

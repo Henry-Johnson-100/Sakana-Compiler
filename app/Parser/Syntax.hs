@@ -8,7 +8,6 @@ module Parser.Syntax
     DocStream (..),
     CharUnit (..),
     TokenStreamUnit (..),
-    SknId (..),
     SknBracketTerminal (..),
     SknScopeType (..),
     SknBracketType (..),
@@ -27,6 +26,7 @@ module Parser.Syntax
     reservedWords,
     tsutosu,
     isKeywordRequiringId,
+    unId,
     liftTreeWithLabel,
     joinLabeledTree,
     labeledTreeNode,
@@ -59,7 +59,7 @@ type CharUnit = StreamUnit Char
 
 type TokenStreamUnit = StreamUnit SknToken
 
-data SknId = SknId {sknId :: !String} deriving (Show, Eq, UC.Format)
+-- data SknId = SknId {sknId :: !String} deriving (Show, Eq, UC.Format)
 
 data SknBracketTerminal = Open | Close deriving (Show, Read, Eq, UC.Format)
 
@@ -99,10 +99,8 @@ data SknType
   | SknTString
   | SknTBool
   | SknTVar !String
-  | SknTData !String ![SknType]
-  | -- | SknTStruct !String
-    -- | SknTConstraint !String !SknType
-    SknTUntyped
+  | SknTStruct !String ![SknType]
+  | SknTUntyped
   deriving (Show, Eq, UC.Format)
 
 -- | Describing values' literal construction
@@ -112,6 +110,7 @@ data SknValLiteral
   | SknVChar !Char
   | SknVString !String
   | SknVBool !Bool
+  | SknVId !String
   | SknVList ![SknValLiteral]
   deriving (Show, Eq, UC.Format)
 
@@ -139,7 +138,6 @@ data SknToken
   | SknTokenData !SknData
   | SknTokenKeyword !SknKeyword
   | SknTokenFlag !SknFlag
-  | SknTokenId !SknId
   | SknTokenTypeLiteral !SknType
   deriving (Show, Eq, UC.Format)
 
@@ -161,7 +159,8 @@ sknData svl =
         SknVChar _ -> SknTChar
         SknVString _ -> SknTString
         SknVBool _ -> SknTBool
-        SknVList _ -> SknTData "List" []
+        SknVList _ -> SknTStruct "List" []
+        SknVId _ -> SknTUntyped
     )
 
 ----SknTree data type---------------------------------------------------------------------
@@ -255,3 +254,7 @@ tsutosu st (StreamUnit t l _) = SknSyntaxUnit t l st
 
 isKeywordRequiringId :: SknKeyword -> Bool
 isKeywordRequiringId k = or $ (<$>) (k ==) [Fish, School, Shoal]
+
+unId :: SknValLiteral -> Maybe.Maybe String
+unId (SknVId id') = Maybe.Just id'
+unId _ = Maybe.Nothing
