@@ -17,6 +17,8 @@ module Parser.Core
     sknIdParser,
     sknTokenBracketParser,
     sknTokenDataParser,
+    sknTokenKeywordParser,
+    sknTokenFlagParser,
     typeLiteralPrimitiveParser,
   )
 where
@@ -295,15 +297,12 @@ sknTokenBracketParser bt st Syntax.Close = do
 sknTokenDataParser :: SknTokenParser u
 sknTokenDataParser = fmap (Syntax.SknTokenData . Syntax.sknData) sknValLiteralParser
 
--- #TEST
 sknTokenKeywordParser :: Syntax.SknKeyword -> SknTokenParser u
 sknTokenKeywordParser = fmap Syntax.SknTokenKeyword . sknKeywordParser
 
--- #TEST
 sknTokenFlagParser :: SknTokenParser u
 sknTokenFlagParser = fmap Syntax.SknTokenFlag sknFlagParser
 
--- #TEST
 sknTokenIdParser :: SknTokenParser u
 sknTokenIdParser = fmap (Syntax.SknTokenData . Syntax.sknData) sknIdParser
 

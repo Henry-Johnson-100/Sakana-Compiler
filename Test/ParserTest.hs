@@ -311,6 +311,16 @@ idParserTests =
 sknTokenParserTests =
   testGroup
     "SknToken Parser Tests"
+    [ sknTokenBracketParserTests,
+      sknTokenDataParserTests,
+      sknTokenKeywordParserTests,
+      sknTokenFlagParserTests,
+      sknTokenIdParserTests
+    ]
+
+sknTokenBracketParserTests =
+  testGroup
+    "Token Bracket Parser Tests"
     [ timedAssertEqual
         1
         "An open Send value bracket"
@@ -358,8 +368,15 @@ sknTokenParserTests =
         "A close Return value bracket"
         []
         (SknTokenBracket (SknBracket Type Return Close))
-        (sknTokenBracketP Type Return Close ":<"),
-      timedAssertEqual
+        (sknTokenBracketP Type Return Close ":<")
+    ]
+  where
+    sknTokenBracketP bt st bterm str = tparse (sknTokenBracketParser bt st bterm) str
+
+sknTokenDataParserTests =
+  testGroup
+    "Token Data Parser Tests"
+    [ timedAssertEqual
         1
         "Data is parsed as a SknTokenData - Bool"
         []
@@ -427,54 +444,6 @@ sknTokenParserTests =
         (tparse sknTokenDataParser "\"Hello World!\""),
       timedAssertEqual
         1
-        "Parse a letter ID"
-        []
-        ((SknTokenData . sknData . SknVId) "main")
-        (tparse sknTokenDataParser "main"),
-      timedAssertEqual
-        1
-        "Parse a capitalized ID"
-        []
-        ((SknTokenData . sknData . SknVId) "Main")
-        (tparse sknTokenDataParser "Main"),
-      timedAssertEqual
-        1
-        "Parse a symbol id"
-        []
-        ((SknTokenData . sknData . SknVId) "+")
-        (tparse sknTokenDataParser "+"),
-      timedAssertEqual
-        1
-        "Parse an id with numbers after letter head."
-        []
-        ((SknTokenData . sknData . SknVId) "alpha123")
-        (tparse sknTokenDataParser "alpha123"),
-      timedAssertEqual
-        1
-        "Parse an ID starting with symbol with numbers"
-        []
-        ((SknTokenData . sknData . SknVId) "+2xgood")
-        (tparse sknTokenDataParser "+2xgood"),
-      timedAssertEqual
-        1
-        "Parse an ID with an accessor prefix"
-        []
-        ((SknTokenData . sknData . SknVId) "test.parser")
-        (tparse sknTokenDataParser "test.parser"),
-      timedAssertEqual
-        1
-        "Parse an ID with assorted chars in accessor and accessee"
-        []
-        ((SknTokenData . sknData . SknVId) "test1.pars3rtests!#")
-        (tparse sknTokenDataParser "test1.pars3rtests!#"),
-      timedAssertEqual
-        1
-        "Parse an arbitrarily nested ID"
-        []
-        ((SknTokenData . sknData . SknVId) "Test.Parser.Core1.@Test014_*")
-        (tparse sknTokenDataParser "Test.Parser.Core1.@Test014_*"),
-      timedAssertEqual
-        1
         "Can parse an empty list"
         []
         ((SknTokenData . sknData . SknVList) [])
@@ -539,8 +508,137 @@ sknTokenParserTests =
         ((SknTokenData . sknData . SknVList . map SknVInteger) [1, 2, 3, 4, 6])
         (tparse sknTokenDataParser "[     1,   2,   3, 4   ,  6 ]")
     ]
+
+sknTokenIdParserTests =
+  testGroup
+    "Token Data Id Parser Tests"
+    [ timedAssertEqual
+        1
+        "Parse a letter ID"
+        []
+        ((SknTokenData . sknData . SknVId) "main")
+        (tparse sknTokenDataParser "main"),
+      timedAssertEqual
+        1
+        "Parse a capitalized ID"
+        []
+        ((SknTokenData . sknData . SknVId) "Main")
+        (tparse sknTokenDataParser "Main"),
+      timedAssertEqual
+        1
+        "Parse a symbol id"
+        []
+        ((SknTokenData . sknData . SknVId) "+")
+        (tparse sknTokenDataParser "+"),
+      timedAssertEqual
+        1
+        "Parse an id with numbers after letter head."
+        []
+        ((SknTokenData . sknData . SknVId) "alpha123")
+        (tparse sknTokenDataParser "alpha123"),
+      timedAssertEqual
+        1
+        "Parse an ID starting with symbol with numbers"
+        []
+        ((SknTokenData . sknData . SknVId) "+2xgood")
+        (tparse sknTokenDataParser "+2xgood"),
+      timedAssertEqual
+        1
+        "Parse an ID with an accessor prefix"
+        []
+        ((SknTokenData . sknData . SknVId) "test.parser")
+        (tparse sknTokenDataParser "test.parser"),
+      timedAssertEqual
+        1
+        "Parse an ID with assorted chars in accessor and accessee"
+        []
+        ((SknTokenData . sknData . SknVId) "test1.pars3rtests!#")
+        (tparse sknTokenDataParser "test1.pars3rtests!#"),
+      timedAssertEqual
+        1
+        "Parse an arbitrarily nested ID"
+        []
+        ((SknTokenData . sknData . SknVId) "Test.Parser.Core1.@Test014_*")
+        (tparse sknTokenDataParser "Test.Parser.Core1.@Test014_*")
+    ]
+
+sknTokenKeywordParserTests =
+  testGroup
+    "Token Keyword Parser Tests"
+    [ timedAssertEqual
+        1
+        "Parse a keyword fish"
+        []
+        (SknTokenKeyword Fish)
+        (keywordTokenTParser Fish "fish"),
+      timedAssertEqual
+        1
+        "Parse a keyword school"
+        []
+        (SknTokenKeyword School)
+        (keywordTokenTParser School "school"),
+      timedAssertEqual
+        1
+        "Parse a keyword shoal"
+        []
+        (SknTokenKeyword Shoal)
+        (keywordTokenTParser Shoal "shoal"),
+      timedAssertEqual
+        1
+        "Parse a keyword swim"
+        []
+        (SknTokenKeyword Swim)
+        (keywordTokenTParser Swim "swim"),
+      timedAssertEqual
+        1
+        "Parse a keyword lamprey"
+        []
+        (SknTokenKeyword Lamprey)
+        (keywordTokenTParser Lamprey "lamprey"),
+      timedAssertEqual
+        1
+        "Parse a keyword fin"
+        []
+        (SknTokenKeyword Fin)
+        (keywordTokenTParser Fin "fin"),
+      timedAssertEqual
+        1
+        "Parse a keyword mackerel"
+        []
+        (SknTokenKeyword Mackerel)
+        (keywordTokenTParser Mackerel "mackerel")
+    ]
   where
-    sknTokenBracketP bt st bterm str = tparse (sknTokenBracketParser bt st bterm) str
+    keywordTokenTParser k s = tparse (sknTokenKeywordParser k) s
+
+sknTokenFlagParserTests =
+  testGroup
+    "Token Flag Parser Tests"
+    [ timedAssertEqual
+        1
+        "Parses Impure flag"
+        []
+        (SknTokenFlag Impure)
+        (tparse sknTokenFlagParser "Impure"),
+      timedAssertEqual
+        1
+        "Parses TailCall flag"
+        []
+        (SknTokenFlag TailCall)
+        (tparse sknTokenFlagParser "TailCall"),
+      timedAssertEqual
+        1
+        "Parses IR flag"
+        []
+        (SknTokenFlag IR)
+        (tparse sknTokenFlagParser "IR"),
+      timedAssertEqual
+        1
+        "Parses TypeUnsafe flag"
+        []
+        (SknTokenFlag TypeUnsafe)
+        (tparse sknTokenFlagParser "TypeUnsafe")
+    ]
 
 -- import Parser.Core
 -- import Parser.Syntax as Syntax
