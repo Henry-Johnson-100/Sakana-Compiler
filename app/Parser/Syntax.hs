@@ -91,7 +91,6 @@ data SknFlag
   | TypeUnsafe
   deriving (Show, Read, Eq, UC.Format, Enum)
 
--- | Describing types, which can be possessed by all tokens and also by literals
 data SknType
   = SknTInteger
   | SknTDouble
@@ -100,6 +99,10 @@ data SknType
   | SknTBool
   | SknTVar !String
   | SknTStruct !String ![SknType]
+  | -- SknTFunc doesn't need a list of types because it will hold them as its children
+    -- in the tree representation (I think)
+    SknTFunc
+  | SknTConstraint !String
   | SknTUntyped
   deriving (Show, Eq, UC.Format)
 

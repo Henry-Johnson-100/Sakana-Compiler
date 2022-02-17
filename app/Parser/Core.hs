@@ -20,6 +20,10 @@ module Parser.Core
     sknTokenKeywordParser,
     sknTokenFlagParser,
     typeLiteralPrimitiveParser,
+    lampreyParser,
+    lampreyParameterParser,
+    sknFunctionDefStatementParser,
+    typeAnnotationParser,
   )
 where
 
@@ -464,8 +468,7 @@ lampreyParameterParser :: Syntax.SknScopeType -> SknLabeledTreeParser u
 lampreyParameterParser st =
   tryChoices
     [ sknFunctionDefStatementParser st,
-      sknIdCallWithTypeAnnotation st,
-      (liftTreeParserToLabeledTreeParser Syntax.Literal . sknDataTreeParser) st
+      sknIdCallWithTypeAnnotation st
     ]
 
 -- #TEST
