@@ -26,6 +26,7 @@ module Parser.Core
     typeAnnotationPrimitiveParser,
     typeAnnotationConstraintParser,
     typeAnnotationStructLiteralParser,
+    typeAnnotationFunctionSignatureParser,
   )
 where
 
@@ -410,7 +411,8 @@ typeAnnotationParser st =
   tryChoices
     [ typeAnnotationPrimitiveParser st,
       typeAnnotationConstraintParser st,
-      typeAnnotationStructLiteralParser st
+      typeAnnotationStructLiteralParser st,
+      typeAnnotationFunctionSignatureParser st
     ]
 
 -- | Parses a primitive type literal to a TypeAnnotation labeledTree
@@ -447,7 +449,7 @@ typeAnnotationConstraintParser st =
           Syntax.Return
       Prs.spaces
       let constraintLabeledTree =
-            head baseLiteral -<** constraintLiterals
+            head baseLiteral @-<*= constraintLiterals
       return [constraintLabeledTree]
     -- Will fail the parser if anything other than a SknTVar is passed in
     -- Maps a labeled tree that has a SknTVar in its type annotation to an identical
@@ -511,13 +513,38 @@ typeAnnotationStructLiteralParser st =
       -- This might need to be many inBracket parsers, idk I'm too tired
       structWithTypes <- Prs.many (typeAnnotationParser Syntax.Send)
       Prs.spaces
-      let structTypeTree = (Maybe.fromJust . UGen.head') structId -<** structWithTypes
+      let structTypeTree = (Maybe.fromJust . UGen.head') structId @-<*= structWithTypes
       return [structTypeTree]
 
 -- #TODO
 -- #TEST
 typeAnnotationFunctionSignatureParser :: Syntax.SknScopeType -> SknLabeledTreeParser u
-typeAnnotationFunctionSignatureParser st = return []
+typeAnnotationFunctionSignatureParser st =
+  sknLabeledTreeInBracket
+    Syntax.Type
+    st
+    (typeAnnotationFunctionSignatureParser' st)
+  where
+    typeAnnotationFunctionSignatureParser' ::
+      Syntax.SknScopeType -> SknLabeledTreeParser u
+    typeAnnotationFunctionSignatureParser' st = do
+      pos <- Prs.getPosition
+      sendAnnotations <- (Prs.many . typeAnnotationParser) Syntax.Send
+      nsSpaces
+      returnAnnotation <- typeAnnotationParser Syntax.Return
+      nsSpaces
+      let sknTFuncTree =
+            Syntax.LabeledTree
+              Syntax.TypeAnnotation
+              ( Syntax.SknSyntaxUnit
+                  (Syntax.SknTokenTypeLiteral Syntax.SknTFunc)
+                  (Prs.sourceLine pos)
+                  st
+              )
+              []
+              @-<*= sendAnnotations
+              @-<= returnAnnotation
+      return [sknTFuncTree]
 
 ------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------
@@ -558,8 +585,8 @@ lampreyParser st = do
   let lampreySU = getLampreyKeyword implicitKeyword value st
       lampreyExprTree =
         [ Syntax.liftTreeWithLabel Syntax.LampreyExpr (Tree.tree lampreySU)
-            -<** lampreyParams
-            -<** [value]
+            @-<*= lampreyParams
+            @-<= value
         ]
   return lampreyExprTree
   where
@@ -683,16 +710,10 @@ notSpace = Prs.noneOf " \t\n\r"
 sSpace :: CharStreamParser Char u
 sSpace = Prs.lookAhead Prs.space
 
-infixl 9 -<**
+infixl 9 @-<*=
 
-(-<**) :: Syntax.LabeledTree a -> [[Syntax.LabeledTree a]] -> Syntax.LabeledTree a
-(-<**) = Data.List.foldl' attachLabeledTreeBranch
-  where
-    attachLabeledTreeBranch ::
-      Syntax.LabeledTree a -> [Syntax.LabeledTree a] -> Syntax.LabeledTree a
-    attachLabeledTreeBranch Syntax.EmptyLabeledTree _ = Syntax.EmptyLabeledTree
-    attachLabeledTreeBranch (Syntax.LabeledTree label n trs) xs =
-      Syntax.LabeledTree label n (trs ++ xs)
+(@-<*=) :: Syntax.LabeledTree a -> [[Syntax.LabeledTree a]] -> Syntax.LabeledTree a
+(@-<*=) = Data.List.foldl' (@-<=)
 
 -- -- | Takes a parser and ignores the spaces before and after it.
 -- stripSpaces ::

@@ -653,7 +653,8 @@ typeAnnotationParserTests =
     [ primitiveTypeAnnotationReturnParserTests,
       primitiveTypeAnnotationSendParserTests,
       typeAnnotationConstraintParserTests,
-      typeAnnotationStructParserTests
+      typeAnnotationStructParserTests,
+      typeAnnotationFunctionSignatureParserTests
     ]
 
 primitiveTypeAnnotationReturnParserTests :: TestTree
@@ -843,6 +844,161 @@ typeAnnotationStructParserTests =
         ( tparse
             (typeAnnotationStructLiteralParser Send)
             ">: Something >: >:a:> <:b:<  :>  :>"
+        )
+    ]
+
+typeAnnotationFunctionSignatureParserTests =
+  testGroup
+    "Type Annotation Function Signature Parser Tests"
+    [ timedAssertEqual
+        1
+        "Parse a simple function signature"
+        []
+        [ typeAnnoTree (const SknTFunc) "" Return
+            @-<= [ typeAnnoTree SknTVar "a" Send,
+                   typeAnnoTree SknTVar "b" Return
+                 ]
+        ]
+        (tparse (typeAnnotationFunctionSignatureParser Return) "<: >:a:> <:b:< :<"),
+      timedAssertEqual
+        1
+        "Parse a simple function signature with an arbitrary number of sends"
+        []
+        [ typeAnnoTree (const SknTFunc) "" Return
+            @-<= replicate 3 (typeAnnoTree SknTVar "a" Send)
+            @-<= [typeAnnoTree (const SknTBool) "" Return]
+        ]
+        ( tparse
+            (typeAnnotationFunctionSignatureParser Return)
+            "<: >:a:> >:a:> >:a:> <:Bool:<  :<"
+        ),
+      timedAssertEqual
+        1
+        "Parse a simple sent function signature"
+        []
+        [ typeAnnoTree (const SknTFunc) "" Send
+            @-<= [ typeAnnoTree SknTVar "a" Send,
+                   typeAnnoTree SknTVar "b" Return
+                 ]
+        ]
+        (tparse (typeAnnotationFunctionSignatureParser Send) ">: >:a:> <:b:< :>"),
+      timedAssertEqual
+        1
+        "Parse a foldl' function signature"
+        []
+        [ typeAnnoTree (const SknTFunc) "" Return
+            @-<= [ typeAnnoTree (const SknTFunc) "" Send
+                     @-<= ((\x -> typeAnnoTree SknTVar x Send) <$> ["a", "b"])
+                     @-<= [typeAnnoTree SknTVar "b" Return],
+                   typeAnnoTree SknTVar "b" Send,
+                   typeAnnoTree SknTStruct "t" Send
+                     @-<= [ typeAnnoTree SknTVar "a" Send,
+                            typeAnnoTree SknTConstraint "Foldable" Return
+                          ],
+                   typeAnnoTree SknTStruct "t" Send
+                     @-<= [ typeAnnoTree SknTVar "b" Send,
+                            typeAnnoTree SknTConstraint "Foldable" Return
+                          ]
+                 ]
+        ]
+        ( tparse
+            (typeAnnotationFunctionSignatureParser Return)
+            "<:\
+            \  >:\
+            \    >:b:>\
+            \    >:a:>\
+            \    <:b:<\
+            \  :>\
+            \   >:b:>\
+            \   >: >: t >:a:> :> <:Foldable:< :>\
+            \   <: >: t >:b:> :> <:Foldable:< :<\
+            \:<"
+        ),
+      timedAssertEqual
+        1
+        ""
+        []
+        [ typeAnnoTree (const SknTFunc) "" Return
+            @-<= [ typeAnnoTree SknTStruct "ParsecT" Send
+                     @-<= [ typeAnnoTree SknTStruct "List" Send
+                              @-<= [typeAnnoTree (const SknTChar) "" Send],
+                            typeAnnoTree SknTVar "u" Send,
+                            typeAnnoTree SknTVar "Identity" Send,
+                            typeAnnoTree SknTVar "a" Send
+                              @-<= [typeAnnoTree SknTConstraint "Show" Return]
+                          ],
+                   typeAnnoTree SknTVar "SourceName" Send,
+                   typeAnnoTree (const SknTString) "" Send,
+                   typeAnnoTree SknTStruct "Either" Return
+                     @-<= [ typeAnnoTree SknTVar "ParseError" Send,
+                            typeAnnoTree SknTVar "a" Send
+                              @-<= [typeAnnoTree SknTConstraint "Show" Return]
+                          ]
+                 ]
+        ]
+        ( tparse
+            (typeAnnotationFunctionSignatureParser Return)
+            "<:\
+            \   >:ParsecT\
+            \     >:List >:Char:> :>\
+            \     >:u:>\
+            \     >:Identity:>\
+            \     >:a <:Show:< :>\
+            \   :>\
+            \   >:SourceName:>\
+            \   >:String:>\
+            \   <:\
+            \     Either >:ParseError:> >:a <:Show:< :>\
+            \   :<\
+            \:<"
+        ),
+      timedAssertEqual
+        1
+        "Parse a function signature with structs that have function signatures"
+        "For [a -> b] -> [a] -> [b]"
+        [ typeAnnoTree (const SknTFunc) "" Return
+            @-<= [ typeAnnoTree SknTStruct "List" Send
+                     @-<= [ typeAnnoTree (const SknTFunc) "" Send
+                              @-<= [ typeAnnoTree SknTVar "a" Send,
+                                     typeAnnoTree SknTVar "b" Return
+                                   ]
+                          ],
+                   typeAnnoTree SknTStruct "List" Send
+                     @-<= [typeAnnoTree SknTVar "a" Send],
+                   typeAnnoTree SknTStruct "List" Return
+                     @-<= [typeAnnoTree SknTVar "b" Send]
+                 ]
+        ]
+        ( tparse
+            (typeAnnotationFunctionSignatureParser Return)
+            "<:\
+            \   >:\
+            \     List >: >:a:> <:b:< :>\
+            \   :>\
+            \   >:List >:a:> :>\
+            \   <:List >:b:> :<\
+            \:<"
+        ),
+      timedAssertEqual
+        1
+        "Parse a function signature with non-syntactic whitespace"
+        []
+        [ typeAnnoTree (const SknTFunc) "" Return
+            @-<= [ typeAnnoTree SknTStruct "List" Send
+                     @-<= [ typeAnnoTree (const SknTFunc) "" Send
+                              @-<= [ typeAnnoTree SknTVar "a" Send,
+                                     typeAnnoTree SknTVar "b" Return
+                                   ]
+                          ],
+                   typeAnnoTree SknTStruct "List" Send
+                     @-<= [typeAnnoTree SknTVar "a" Send],
+                   typeAnnoTree SknTStruct "List" Return
+                     @-<= [typeAnnoTree SknTVar "b" Send]
+                 ]
+        ]
+        ( tparse
+            (typeAnnotationFunctionSignatureParser Return)
+            "<:>:List>:>:a:><:b:<:>:>>:List>:a:>:><:List>:b:>:<:<"
         )
     ]
 
