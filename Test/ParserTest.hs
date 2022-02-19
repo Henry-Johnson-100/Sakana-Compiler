@@ -1,14 +1,42 @@
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+
+{-# HLINT ignore "Use lambda-case" #-}
 import Data.Either
+import Data.Functor.Identity
 import Data.List
 import Parser.Core
 import Parser.Syntax
 import Test.Core
+import Text.Parsec (ParsecT)
 import Text.Parsec.Error as PrsE
 import Util.Tree
 
+type AnyParser a = ParsecT String () Identity a
+
+tparse :: (Eq a) => AnyParser a -> String -> a
 tparse p = generalParse p ""
 
+tparseAnyFail :: (Eq a) => AnyParser a -> String -> Bool
 tparseAnyFail p = either (const True) (const False) . generalParsePreserveError p ""
+
+errorMsgLike :: PrsE.Message -> PrsE.Message -> Bool
+errorMsgLike (SysUnExpect _) (SysUnExpect _) = True
+errorMsgLike (UnExpect _) (UnExpect _) = True
+errorMsgLike (Expect _) (Expect _) = True
+errorMsgLike (Message _) (Message _) = True
+errorMsgLike _ _ = False
+
+parseErrorMsgStrings :: (String -> PrsE.Message) -> PrsE.ParseError -> [String]
+parseErrorMsgStrings mType =
+  map PrsE.messageString
+    . filter (errorMsgLike (mType ""))
+    . PrsE.errorMessages
+
+anyParseErrorMsg :: (String -> PrsE.Message) -> String -> PrsE.ParseError -> Bool
+anyParseErrorMsg mType comp = elem comp . parseErrorMsgStrings mType
+
+tparseFailsWithMsg p mType comp =
+  either (anyParseErrorMsg mType comp) (const False) . generalParsePreserveError p ""
 
 main = defaultMain tests
 
