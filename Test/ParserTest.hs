@@ -820,7 +820,7 @@ typeAnnotationStructParserTests =
         1
         "Parse a struct with struct type members"
         []
-        [ typeAnnoTree SknTStruct "List" Send
+        [ typeAnnoTree SknTStruct "LabeledTree" Send
             @-<= [ typeAnnoTree SknTStruct "Tree" Send
                      @-<= [typeAnnoTree SknTVar "a" Send]
                  ]

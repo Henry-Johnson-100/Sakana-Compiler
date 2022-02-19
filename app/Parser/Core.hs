@@ -401,91 +401,16 @@ sknLabeledTreeInBracket bt st p = do
 ----SknLabeledTree Parsers----------------------------------------------------------------
 ------------------------------------------------------------------------------------------
 
--- #TEST
-liftTreeParserToLabeledTreeParser ::
-  Syntax.SknStaticTreeLabel -> SknTreeParser u -> SknLabeledTreeParser u
-liftTreeParserToLabeledTreeParser = fmap . map . Syntax.liftTreeWithLabel
-
--- sknLampreyExprParser :: Syntax.SknScopeType -> SknLabeledTreeParser u
--- sknLampreyExprParser st = do
---   implicitKeyword <- Prs.optionMaybe (sknTreeKeywordParser Syntax.Lamprey st)
---   paramsOrOther <- (Prs.many)
---   Prs.spaces
---   return []
---   where
---     lampreyParameterParser :: Syntax.SknScopeType -> SknLabeledTreeParser u
---     lampreyParameterParser st =
---       return []
-
--- #TEST
--- #TODO
-lampreyParser :: Syntax.SknScopeType -> SknLabeledTreeParser u
-lampreyParser st = do
-  implicitKeyword <- Prs.optionMaybe (sknTreeKeywordParser Syntax.Lamprey st)
-  Prs.spaces
-  lampreyParams <-
-    ( Prs.many
-        . sknLabeledTreeInBracket Syntax.Value Syntax.Send
-      )
-      (lampreyParameterParser Syntax.Send)
-      <?> "valid identifiers, function definitions or value literals."
-  Prs.spaces
-  value <-
-    sknLabeledTreeInBracket Syntax.Value Syntax.Return (expressionParser Syntax.Return)
-      <?> "an expression returing a value."
-  Prs.spaces
-  let lampreySU = getLampreyKeyword implicitKeyword value st
-      lampreyExprTree =
-        [ Syntax.liftTreeWithLabel Syntax.LampreyExpr (Tree.tree lampreySU)
-            -<** lampreyParams
-            -<** [value]
-        ]
-  return lampreyExprTree
-  where
-    getLampreyKeyword ::
-      Maybe.Maybe [Tree.Tree Syntax.SknSyntaxUnit] ->
-      [Syntax.LabeledTree Syntax.SknSyntaxUnit] ->
-      Syntax.SknScopeType ->
-      Syntax.SknSyntaxUnit
-    getLampreyKeyword implicitKeyword' alternativeLineSource st' =
-      let altLampreyLocation =
-            Maybe.fromMaybe
-              0
-              ( UGen.head' alternativeLineSource
-                  >>= Syntax.labeledTreeNode
-                  >>= (return . Syntax.sknUnitLine)
-              )
-       in Maybe.fromMaybe
-            ( Syntax.SknSyntaxUnit
-                (Syntax.SknTokenKeyword Syntax.Lamprey)
-                altLampreyLocation
-                st'
-            )
-            (implicitKeyword' >>= UGen.head' >>= Tree.treeNode)
-
--- #TEST
-
--- | Lamprey parameters can have function definitions, value ID's or literal values.
--- #TODO Add a parser for a piscis in the id tree parser option.
-lampreyParameterParser :: Syntax.SknScopeType -> SknLabeledTreeParser u
-lampreyParameterParser st =
-  tryChoices
-    [ sknFunctionDefStatementParser st,
-      sknIdCallWithTypeAnnotation st
-    ]
-
--- #TEST
--- #TODO
-sknIdCallWithTypeAnnotation :: Syntax.SknScopeType -> SknLabeledTreeParser u
-sknIdCallWithTypeAnnotation st = do
-  return []
+--------Type Annotation Parsers-----------------------------------------------------------
+------------------------------------------------------------------------------------------
 
 -- #TODO
 typeAnnotationParser :: Syntax.SknScopeType -> SknLabeledTreeParser u
 typeAnnotationParser st =
   tryChoices
     [ typeAnnotationPrimitiveParser st,
-      typeAnnotationConstraintParser st
+      typeAnnotationConstraintParser st,
+      typeAnnotationStructLiteralParser st
     ]
 
 -- | Parses a primitive type literal to a TypeAnnotation labeledTree
@@ -593,6 +518,88 @@ typeAnnotationStructLiteralParser st =
 -- #TEST
 typeAnnotationFunctionSignatureParser :: Syntax.SknScopeType -> SknLabeledTreeParser u
 typeAnnotationFunctionSignatureParser st = return []
+
+------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------
+
+-- #TEST
+liftTreeParserToLabeledTreeParser ::
+  Syntax.SknStaticTreeLabel -> SknTreeParser u -> SknLabeledTreeParser u
+liftTreeParserToLabeledTreeParser = fmap . map . Syntax.liftTreeWithLabel
+
+-- sknLampreyExprParser :: Syntax.SknScopeType -> SknLabeledTreeParser u
+-- sknLampreyExprParser st = do
+--   implicitKeyword <- Prs.optionMaybe (sknTreeKeywordParser Syntax.Lamprey st)
+--   paramsOrOther <- (Prs.many)
+--   Prs.spaces
+--   return []
+--   where
+--     lampreyParameterParser :: Syntax.SknScopeType -> SknLabeledTreeParser u
+--     lampreyParameterParser st =
+--       return []
+
+-- #TEST
+-- #TODO
+lampreyParser :: Syntax.SknScopeType -> SknLabeledTreeParser u
+lampreyParser st = do
+  implicitKeyword <- Prs.optionMaybe (sknTreeKeywordParser Syntax.Lamprey st)
+  Prs.spaces
+  lampreyParams <-
+    ( Prs.many
+        . sknLabeledTreeInBracket Syntax.Value Syntax.Send
+      )
+      (lampreyParameterParser Syntax.Send)
+      <?> "valid identifiers, function definitions or value literals."
+  Prs.spaces
+  value <-
+    sknLabeledTreeInBracket Syntax.Value Syntax.Return (expressionParser Syntax.Return)
+      <?> "an expression returing a value."
+  Prs.spaces
+  let lampreySU = getLampreyKeyword implicitKeyword value st
+      lampreyExprTree =
+        [ Syntax.liftTreeWithLabel Syntax.LampreyExpr (Tree.tree lampreySU)
+            -<** lampreyParams
+            -<** [value]
+        ]
+  return lampreyExprTree
+  where
+    getLampreyKeyword ::
+      Maybe.Maybe [Tree.Tree Syntax.SknSyntaxUnit] ->
+      [Syntax.LabeledTree Syntax.SknSyntaxUnit] ->
+      Syntax.SknScopeType ->
+      Syntax.SknSyntaxUnit
+    getLampreyKeyword implicitKeyword' alternativeLineSource st' =
+      let altLampreyLocation =
+            Maybe.fromMaybe
+              0
+              ( UGen.head' alternativeLineSource
+                  >>= Syntax.labeledTreeNode
+                  >>= (return . Syntax.sknUnitLine)
+              )
+       in Maybe.fromMaybe
+            ( Syntax.SknSyntaxUnit
+                (Syntax.SknTokenKeyword Syntax.Lamprey)
+                altLampreyLocation
+                st'
+            )
+            (implicitKeyword' >>= UGen.head' >>= Tree.treeNode)
+
+-- #TEST
+
+-- | Lamprey parameters can have function definitions, value ID's or literal values.
+-- #TODO Add a parser for a piscis in the id tree parser option.
+lampreyParameterParser :: Syntax.SknScopeType -> SknLabeledTreeParser u
+lampreyParameterParser st =
+  tryChoices
+    [ sknFunctionDefStatementParser st,
+      sknIdCallWithTypeAnnotation st
+    ]
+
+-- #TEST
+-- #TODO
+sknIdCallWithTypeAnnotation :: Syntax.SknScopeType -> SknLabeledTreeParser u
+sknIdCallWithTypeAnnotation st = do
+  return []
 
 -- #TEST
 -- #TODO
