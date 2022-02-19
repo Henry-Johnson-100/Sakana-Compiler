@@ -1,9 +1,14 @@
+import Data.Either
+import Data.List
 import Parser.Core
 import Parser.Syntax
 import Test.Core
+import Text.Parsec.Error as PrsE
 import Util.Tree
 
 tparse p = generalParse p ""
+
+tparseAnyFail p = either (const True) (const False) . generalParsePreserveError p ""
 
 main = defaultMain tests
 
@@ -911,7 +916,13 @@ typeAnnotationConstraintParserTests =
         ( tparse
             (typeAnnotationConstraintParser Send)
             ">:a <:Semigroup:< <:Monad:< <:Foldable:< :>"
-        )
+        ),
+      timedAssertEqual
+        1
+        "Doesn't parse a constraint that has a primitive type literal"
+        []
+        True
+        (tparseAnyFail (typeAnnotationConstraintParser Send) ">: a <: Integer :< :>")
     ]
 
 typeAnnotationStructParserTests =
@@ -919,10 +930,38 @@ typeAnnotationStructParserTests =
     "Type Annotation Struct Parser Tests"
     [ timedAssertEqual
         1
-        "Not implemented"
-        "Not implemented"
-        False
+        "Parse a simple struct literal"
+        []
+        [ LabeledTree
+            TypeAnnotation
+            (SknSyntaxUnit (SknTokenTypeLiteral (SknTStruct "List")) 1 Send)
+            [ LabeledTree
+                TypeAnnotation
+                (SknSyntaxUnit (SknTokenTypeLiteral (SknTVar "a")) 1 Send)
+                []
+            ]
+        ]
+        (tparse (typeAnnotationStructLiteralParser Send) ">:List >:a:> :>"),
+      timedAssertEqual
+        1
+        "Doesn't parse a malformed struct literal that looks like a constraint"
+        []
         True
+        (tparseAnyFail (typeAnnotationStructLiteralParser Send) ">: List <:a:< :>"),
+      timedAssertEqual
+        1
+        "Parse a simple return struct literal"
+        []
+        [ LabeledTree
+            TypeAnnotation
+            (SknSyntaxUnit (SknTokenTypeLiteral (SknTStruct "List")) 1 Return)
+            [ LabeledTree
+                TypeAnnotation
+                (SknSyntaxUnit (SknTokenTypeLiteral (SknTVar "a")) 1 Send)
+                []
+            ]
+        ]
+        (tparse (typeAnnotationStructLiteralParser Return) "<: List >:a:> :<")
     ]
 
 -- miscTypeAnnotationParserTests =

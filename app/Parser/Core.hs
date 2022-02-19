@@ -26,6 +26,7 @@ module Parser.Core
     typeAnnotationParser,
     typeAnnotationPrimitiveParser,
     typeAnnotationConstraintParser,
+    typeAnnotationStructLiteralParser,
   )
 where
 
@@ -579,24 +580,31 @@ typeAnnotationConstraintParser st =
             )
         getLabeledTreeHasSknTVar lt = (False, UC.defaultValue)
 
--- | Parses type annotations like: List \>\:a\:\> (i.e. NOT surrounded by type brackets)
+-- | Parses type annotations like: List \>\:a\:\>
 -- # TEST
 -- #XXX NOW
 typeAnnotationStructLiteralParser :: Syntax.SknScopeType -> SknLabeledTreeParser u
-typeAnnotationStructLiteralParser st = do
-  structId <-
-    ( liftTreeParserToLabeledTreeParser Syntax.TypeAnnotation
-        . fmap (UGen.listSingleton . Tree.tree)
-        . flip suLiftTokenParser st
-        . fmap Syntax.SknTokenTypeLiteral
-      )
-      sknTStructParser
-  Prs.spaces
-  -- This might need to be many inBracket parsers, idk I'm too tired
-  structWithTypes <- Prs.many (typeAnnotationParser Syntax.Send)
-  Prs.spaces
-  let structTypeTree = (Maybe.fromJust . UGen.head') structId -<** structWithTypes
-  return [structTypeTree]
+typeAnnotationStructLiteralParser st =
+  sknLabeledTreeInBracket
+    Syntax.Type
+    st
+    (typeAnnotationStructLiteralParser' st)
+  where
+    typeAnnotationStructLiteralParser' :: Syntax.SknScopeType -> SknLabeledTreeParser u
+    typeAnnotationStructLiteralParser' st = do
+      structId <-
+        ( liftTreeParserToLabeledTreeParser Syntax.TypeAnnotation
+            . fmap (UGen.listSingleton . Tree.tree)
+            . flip suLiftTokenParser st
+            . fmap Syntax.SknTokenTypeLiteral
+          )
+          sknTStructParser
+      Prs.spaces
+      -- This might need to be many inBracket parsers, idk I'm too tired
+      structWithTypes <- Prs.many (typeAnnotationParser Syntax.Send)
+      Prs.spaces
+      let structTypeTree = (Maybe.fromJust . UGen.head') structId -<** structWithTypes
+      return [structTypeTree]
 
 -- #TODO
 -- #TEST
