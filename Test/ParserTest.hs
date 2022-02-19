@@ -177,71 +177,6 @@ valueLiteralParserTests =
         (tparse sknValLiteralParser "-587.3465"),
       timedAssertEqual
         1
-        "Can parse an empty list"
-        []
-        (SknVList [])
-        (tparse valLiteralListParser "[]"),
-      timedAssertEqual
-        1
-        "Can parse a well-formed list of one type"
-        []
-        ((SknVList . map SknVInteger) [1, 2, 3, 4])
-        (tparse valLiteralListParser "[1,2,3,4]"),
-      timedAssertEqual
-        1
-        "Can parse a list of ints and doubles"
-        []
-        ( SknVList
-            [ SknVInteger 1,
-              SknVDouble 2.4,
-              SknVInteger 5,
-              SknVDouble 9.78,
-              SknVDouble 57.89,
-              SknVInteger 100
-            ]
-        )
-        (tparse valLiteralListParser "[1,2.4,5,9.78,57.89,100]"),
-      timedAssertEqual
-        1
-        "Can parse nested lists"
-        []
-        ( SknVList
-            [ SknVList [SknVInteger 1],
-              SknVList [SknVList [SknVList [SknVBool False]]]
-            ]
-        )
-        (tparse valLiteralListParser "[[1], [[[False]]]]"),
-      timedAssertEqual
-        1
-        "literal parser can differentiate lists"
-        []
-        ((SknVList . map SknVBool) [True, False, True, True, False])
-        (tparse sknValLiteralParser "[True, False, True, True, False]"),
-      timedAssertEqual
-        1
-        "List literals can contain ID's NOT IMPLEMENTED"
-        []
-        ( (SknVList . map SknVId)
-            ["id", "add", "subtract", "foldl`", "foldr", "map", "fmap"]
-        )
-        ( tparse
-            sknValLiteralParser
-            "[ id ,add ,subtract ,foldl` ,foldr ,map ,fmap]"
-        ),
-      timedAssertEqual
-        1
-        "Can parse an ill-formed list of one type (1)"
-        []
-        ((SknVList . map SknVInteger) [1, 2, 3, 4])
-        (tparse valLiteralListParser "[1,2,   3, 4 ]"),
-      timedAssertEqual
-        1
-        "Can parse an ill-formed list of one type (2)"
-        []
-        ((SknVList . map SknVInteger) [1, 2, 3, 4, 6])
-        (tparse valLiteralListParser "[     1,   2,   3, 4   ,  6 ]"),
-      timedAssertEqual
-        1
         "Parser fails malformed token"
         "12.bool.fam"
         True
@@ -494,72 +429,7 @@ sknTokenDataParserTests =
         "Data is parsed as a SknTokenData - String"
         []
         (SknTokenData (SknData (SknVString "Hello World!") SknTString))
-        (tparse sknTokenDataParser "\"Hello World!\""),
-      timedAssertEqual
-        1
-        "Can parse an empty list"
-        []
-        ((SknTokenData . sknData . SknVList) [])
-        (tparse sknTokenDataParser "[]"),
-      timedAssertEqual
-        1
-        "Can parse a well-formed list of one type"
-        []
-        ((SknTokenData . sknData . SknVList . map SknVInteger) [1, 2, 3, 4])
-        (tparse sknTokenDataParser "[1,2,3,4]"),
-      timedAssertEqual
-        1
-        "Can parse a list of ints and doubles"
-        []
-        ( (SknTokenData . sknData . SknVList)
-            [ SknVInteger 1,
-              SknVDouble 2.4,
-              SknVInteger 5,
-              SknVDouble 9.78,
-              SknVDouble 57.89,
-              SknVInteger 100
-            ]
-        )
-        (tparse sknTokenDataParser "[1,2.4,5,9.78,57.89,100]"),
-      timedAssertEqual
-        1
-        "Can parse nested lists"
-        []
-        ( (SknTokenData . sknData . SknVList)
-            [ SknVList [SknVInteger 1],
-              SknVList [SknVList [SknVList [SknVBool False]]]
-            ]
-        )
-        (tparse sknTokenDataParser "[[1], [[[False]]]]"),
-      timedAssertEqual
-        1
-        "literal parser can differentiate lists"
-        []
-        ((SknTokenData . sknData . SknVList . map SknVBool) [True, False, True, True, False])
-        (tparse sknTokenDataParser "[True, False, True, True, False]"),
-      timedAssertEqual
-        1
-        "List literals can contain ID's NOT IMPLEMENTED"
-        []
-        ( (SknTokenData . sknData . SknVList . map SknVId)
-            ["id", "add", "subtract", "foldl`", "foldr", "map", "fmap"]
-        )
-        ( tparse
-            sknTokenDataParser
-            "[ id ,add ,subtract ,foldl` ,foldr ,map ,fmap]"
-        ),
-      timedAssertEqual
-        1
-        "Can parse an ill-formed list of one type (1)"
-        []
-        ((SknTokenData . sknData . SknVList . map SknVInteger) [1, 2, 3, 4])
-        (tparse sknTokenDataParser "[1,2,   3, 4 ]"),
-      timedAssertEqual
-        1
-        "Can parse an ill-formed list of one type (2)"
-        []
-        ((SknTokenData . sknData . SknVList . map SknVInteger) [1, 2, 3, 4, 6])
-        (tparse sknTokenDataParser "[     1,   2,   3, 4   ,  6 ]")
+        (tparse sknTokenDataParser "\"Hello World!\"")
     ]
 
 sknTokenIdParserTests =

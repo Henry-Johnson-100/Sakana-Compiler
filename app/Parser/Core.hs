@@ -10,7 +10,6 @@ module Parser.Core
     valLiteralCharParser,
     valLiteralDoubleParser,
     valLiteralIntegerParser,
-    valLiteralListParser,
     sknValLiteralParser,
     sknKeywordParser,
     sknFlagParser,
@@ -180,35 +179,9 @@ valLiteralPrimitiveParser =
 --   <|> tryChoices [valLiteralDoubleParser, valLiteralIntegerParser]
 --   <|> tryChoices [valLiteralBoolParser, sknIdParser]
 
-valLiteralListParser :: SknValLiteralParser u
-valLiteralListParser = do
-  Prs.char '['
-  nsSpaces
-  maybeListContents <- Prs.optionMaybe listContentParser
-  nsSpaces
-  Prs.char ']' <?> "list closing bracket \']\'"
-  (return . Syntax.SknVList . Maybe.fromMaybe []) maybeListContents
-  where
-    listContentParser :: CharStreamParser [Syntax.SknValLiteral] u
-    listContentParser = do
-      nsSpaces
-      headItem <- sknValLiteralParser
-      tailItems <- Prs.many listRetroContentParser
-      let listContents = headItem : tailItems
-      return listContents
-    listRetroContentParser :: SknValLiteralParser u
-    listRetroContentParser = do
-      nsSpaces
-      Prs.char ',' <?> "comma delimiter between list items"
-      nsSpaces
-      -- #TODO this is going to have to be all expressions!
-      literal <- sknValLiteralParser <?> "an expression or value literal"
-      nsSpaces
-      return literal
-
 sknValLiteralParser :: SknValLiteralParser u
 sknValLiteralParser =
-  tryChoices [valLiteralPrimitiveParser, valLiteralListParser]
+  valLiteralPrimitiveParser
     <?> "a literal value e.g. 1, True, \"><>\", \'A\', 50.4868675"
 
 ----Id Parser-----------------------------------------------------------------------------
