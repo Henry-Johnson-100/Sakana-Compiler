@@ -729,131 +729,330 @@ lampreyDefinitionParserTests =
 typeAnnotationParserTests =
   testGroup
     "Type Annotation Parser Tests"
+    [ primitiveTypeAnnotationReturnParserTests,
+      primitiveTypeAnnotationSendParserTests,
+      typeAnnotationConstraintParserTests,
+      typeAnnotationStructParserTests
+    ]
+
+primitiveTypeAnnotationReturnParserTests :: TestTree
+primitiveTypeAnnotationReturnParserTests =
+  testGroup
+    "Type Annotation Return Parser Tests"
+    ( zipWith
+        ( \assertion text ->
+            timedAssertEqual
+              1
+              ( "TypeAnnotationReturnParser Test works\
+                \ for literal: "
+                  ++ text
+              )
+              []
+              [ LabeledTree
+                  TypeAnnotation
+                  (SknSyntaxUnit (SknTokenTypeLiteral assertion) 1 Return)
+                  []
+              ]
+              (tparse (typeAnnotationPrimitiveParser Return) text)
+        )
+        [ SknTInteger,
+          SknTDouble,
+          SknTChar,
+          SknTString,
+          SknTBool,
+          SknTVar "test",
+          SknTVar "test",
+          SknTVar "test._symbol3s$"
+        ]
+        [ "<:Integer:<",
+          "<:Double:<",
+          "<: Char :<",
+          "<: String:<",
+          "<:Bool:<",
+          "<:test:<",
+          "<: test :<",
+          "<:   test._symbol3s$ :<"
+        ]
+    )
+
+primitiveTypeAnnotationSendParserTests :: TestTree
+primitiveTypeAnnotationSendParserTests =
+  testGroup
+    "Type Annotation Send Parser Tests"
+    ( zipWith
+        ( \assertion text ->
+            timedAssertEqual
+              1
+              ( "TypeAnnotationSendParser Test works\
+                \ for literal: "
+                  ++ text
+              )
+              []
+              [ LabeledTree
+                  TypeAnnotation
+                  (SknSyntaxUnit (SknTokenTypeLiteral assertion) 1 Send)
+                  []
+              ]
+              (tparse (typeAnnotationPrimitiveParser Send) text)
+        )
+        [ SknTInteger,
+          SknTDouble,
+          SknTChar,
+          SknTString,
+          SknTBool,
+          SknTVar "test",
+          SknTVar "test",
+          SknTVar "test._symbol3s$"
+        ]
+        [ ">:Integer:>",
+          ">:Double:>",
+          ">: Char :>",
+          ">: String:>",
+          ">:Bool:>",
+          ">:test:>",
+          ">: test :>",
+          ">:   test._symbol3s$ :>"
+        ]
+    )
+
+typeAnnotationConstraintParserTests =
+  testGroup
+    "Type Annotation Constraint Parser Tests"
     [ timedAssertEqual
         1
-        "Parse a return type literal"
+        "Parse a simple constraint"
         []
         [ LabeledTree
             TypeAnnotation
-            (SknSyntaxUnit (SknTokenTypeLiteral SknTInteger) 1 Return)
-            []
-        ]
-        (tparse typeAnnotationParser "<:Integer:<"),
-      timedAssertEqual
-        1
-        "Parse a send type literal"
-        []
-        [ LabeledTree
-            TypeAnnotation
-            (SknSyntaxUnit (SknTokenTypeLiteral SknTInteger) 1 Send)
-            []
-        ]
-        (tparse typeAnnotationParser ">:Integer:>"),
-      timedAssertEqual
-        1
-        "Parse a return type variable"
-        []
-        [LabeledTree TypeAnnotation (idtosu Return "some_var.type") []]
-        (tparse typeAnnotationParser "<: some_var.type :<"),
-      timedAssertEqual
-        1
-        "Parse a function signature"
-        []
-        [ LabeledTree TypeAnnotation (idtosu Send "a") [],
-          LabeledTree TypeAnnotation (idtosu Return "b") []
-        ]
-        (tparse typeAnnotationParser ">:a:> <:b:<"),
-      timedAssertEqual
-        1
-        "Parse a more complex function signature"
-        []
-        [ LabeledTree TypeAnnotation (idtosu Send "a") [],
-          LabeledTree TypeAnnotation (idtosu Send "b") [],
-          LabeledTree TypeAnnotation (idtosu Return "c") []
-        ]
-        (tparse typeAnnotationParser ">:a:> >:b:> <:c:<"),
-      timedAssertEqual
-        1
-        "Parse a nested function signature"
-        []
-        [ LabeledTree
-            TypeAnnotation
-            (SknSyntaxUnit (SknTokenTypeLiteral SknTFunc) 0 Send)
-            [ LabeledTree TypeAnnotation (idtosu Send "a") [],
-              LabeledTree TypeAnnotation (idtosu Send "b") [],
-              LabeledTree TypeAnnotation (idtosu Return "b") []
-            ],
-          LabeledTree TypeAnnotation (idtosu Send "b") [],
-          LabeledTree TypeAnnotation (idtosu Send "a") [],
-          LabeledTree TypeAnnotation (idtosu Return "b") []
-        ]
-        (tparse typeAnnotationParser ">: >:a:> >:b:> <:b:< :>  >:b:> >:a:> <:b:<"),
-      timedAssertEqual
-        1
-        "Parse a type annotation with constraints"
-        []
-        [LabeledTree NoLabel (idtosu Return "NOT IMPLEMENTED") []]
-        (tparse typeAnnotationParser ">: a <:Eq:< :>"),
-      timedAssertEqual
-        1
-        "Parse a nested function signature with constraints"
-        []
-        [ LabeledTree
-            TypeAnnotation
-            (SknSyntaxUnit (SknTokenTypeLiteral SknTFunc) 0 Send)
+            (SknSyntaxUnit (SknTokenTypeLiteral (SknTVar "a")) 1 Send)
             [ LabeledTree
                 TypeAnnotation
-                (idtosu Send "a")
-                [ LabeledTree
-                    TypeAnnotation
-                    (SknSyntaxUnit (SknTokenTypeLiteral (SknTConstraint "Num")) 0 Return)
-                    []
-                ],
+                (SknSyntaxUnit (SknTokenTypeLiteral (SknTConstraint "Num")) 1 Return)
+                []
+            ]
+        ]
+        (tparse (typeAnnotationConstraintParser Send) ">:a <:Num:< :>"),
+      timedAssertEqual
+        1
+        "Parse a simple constraint"
+        []
+        [ LabeledTree
+            TypeAnnotation
+            (SknSyntaxUnit (SknTokenTypeLiteral (SknTVar "a")) 1 Return)
+            [ LabeledTree
+                TypeAnnotation
+                (SknSyntaxUnit (SknTokenTypeLiteral (SknTConstraint "Num")) 1 Return)
+                []
+            ]
+        ]
+        (tparse (typeAnnotationConstraintParser Return) "<:a <:Num:< :<"),
+      timedAssertEqual
+        1
+        "Parse a type with multiple constraints"
+        []
+        [ LabeledTree
+            TypeAnnotation
+            (SknSyntaxUnit (SknTokenTypeLiteral (SknTVar "a")) 1 Send)
+            [ LabeledTree
+                TypeAnnotation
+                ( SknSyntaxUnit
+                    (SknTokenTypeLiteral (SknTConstraint "Semigroup"))
+                    1
+                    Return
+                )
+                [],
               LabeledTree
                 TypeAnnotation
-                (idtosu Send "b")
-                [ LabeledTree
-                    TypeAnnotation
-                    (SknSyntaxUnit (SknTokenTypeLiteral (SknTConstraint "Num")) 0 Return)
-                    []
-                ],
-              LabeledTree
-                TypeAnnotation
-                (idtosu Return "b")
-                [ LabeledTree
-                    TypeAnnotation
-                    (SknSyntaxUnit (SknTokenTypeLiteral (SknTConstraint "Num")) 0 Return)
-                    []
-                ]
-            ],
-          LabeledTree
-            TypeAnnotation
-            (idtosu Send "b")
-            [ LabeledTree
-                TypeAnnotation
-                (SknSyntaxUnit (SknTokenTypeLiteral (SknTConstraint "Num")) 0 Return)
-                []
-            ],
-          LabeledTree
-            TypeAnnotation
-            (idtosu Send "a")
-            [ LabeledTree
-                TypeAnnotation
-                (SknSyntaxUnit (SknTokenTypeLiteral (SknTConstraint "Num")) 0 Return)
-                []
-            ],
-          LabeledTree
-            TypeAnnotation
-            (idtosu Return "b")
-            [ LabeledTree
-                TypeAnnotation
-                (SknSyntaxUnit (SknTokenTypeLiteral (SknTConstraint "Num")) 0 Return)
+                ( SknSyntaxUnit
+                    (SknTokenTypeLiteral (SknTConstraint "Monad"))
+                    1
+                    Return
+                )
                 []
             ]
         ]
         ( tparse
-            typeAnnotationParser
-            ">: >:a <:Num:< :> >:b <:Num:< :> <:b <:Num:< :< :>\
-            \  >:b <:Num:< :> >:a <:Num:< :> <:b <:Num:< :<"
+            (typeAnnotationConstraintParser Send)
+            ">:a <: Semigroup:< <:Monad   :< :>"
+        ),
+      timedAssertEqual
+        1
+        "Parse a type with an arbitrary number of constraints"
+        []
+        [ LabeledTree
+            TypeAnnotation
+            (SknSyntaxUnit (SknTokenTypeLiteral (SknTVar "a")) 1 Send)
+            [ LabeledTree
+                TypeAnnotation
+                ( SknSyntaxUnit
+                    (SknTokenTypeLiteral (SknTConstraint "Semigroup"))
+                    1
+                    Return
+                )
+                [],
+              LabeledTree
+                TypeAnnotation
+                ( SknSyntaxUnit
+                    (SknTokenTypeLiteral (SknTConstraint "Monad"))
+                    1
+                    Return
+                )
+                [],
+              LabeledTree
+                TypeAnnotation
+                ( SknSyntaxUnit
+                    (SknTokenTypeLiteral (SknTConstraint "Foldable"))
+                    1
+                    Return
+                )
+                []
+            ]
+        ]
+        ( tparse
+            (typeAnnotationConstraintParser Send)
+            ">:a <:Semigroup:< <:Monad:< <:Foldable:< :>"
         )
     ]
+
+typeAnnotationStructParserTests =
+  testGroup
+    "Type Annotation Struct Parser Tests"
+    [ timedAssertEqual
+        1
+        "Not implemented"
+        "Not implemented"
+        False
+        True
+    ]
+
+-- miscTypeAnnotationParserTests =
+--   testGroup
+--     "Misc. Type Annotation Parser Tests"
+--     [ timedAssertEqual
+--         1
+--         "Parse a return type literal"
+--         []
+--         [ LabeledTree
+--             TypeAnnotation
+--             (SknSyntaxUnit (SknTokenTypeLiteral SknTInteger) 1 Return)
+--             []
+--         ]
+--         (tparse typeAnnotationParser "<:Integer:<"),
+--       timedAssertEqual
+--         1
+--         "Parse a send type literal"
+--         []
+--         [ LabeledTree
+--             TypeAnnotation
+--             (SknSyntaxUnit (SknTokenTypeLiteral SknTInteger) 1 Send)
+--             []
+--         ]
+--         (tparse typeAnnotationParser ">:Integer:>"),
+--       timedAssertEqual
+--         1
+--         "Parse a return type variable"
+--         []
+--         [LabeledTree TypeAnnotation (idtosu Return "some_var.type") []]
+--         (tparse typeAnnotationParser "<: some_var.type :<"),
+--       timedAssertEqual
+--         1
+--         "Parse a function signature"
+--         []
+--         [ LabeledTree TypeAnnotation (idtosu Send "a") [],
+--           LabeledTree TypeAnnotation (idtosu Return "b") []
+--         ]
+--         (tparse typeAnnotationParser ">:a:> <:b:<"),
+--       timedAssertEqual
+--         1
+--         "Parse a more complex function signature"
+--         []
+--         [ LabeledTree TypeAnnotation (idtosu Send "a") [],
+--           LabeledTree TypeAnnotation (idtosu Send "b") [],
+--           LabeledTree TypeAnnotation (idtosu Return "c") []
+--         ]
+--         (tparse typeAnnotationParser ">:a:> >:b:> <:c:<"),
+--       timedAssertEqual
+--         1
+--         "Parse a nested function signature"
+--         []
+--         [ LabeledTree
+--             TypeAnnotation
+--             (SknSyntaxUnit (SknTokenTypeLiteral SknTFunc) 0 Send)
+--             [ LabeledTree TypeAnnotation (idtosu Send "a") [],
+--               LabeledTree TypeAnnotation (idtosu Send "b") [],
+--               LabeledTree TypeAnnotation (idtosu Return "b") []
+--             ],
+--           LabeledTree TypeAnnotation (idtosu Send "b") [],
+--           LabeledTree TypeAnnotation (idtosu Send "a") [],
+--           LabeledTree TypeAnnotation (idtosu Return "b") []
+--         ]
+--         (tparse typeAnnotationParser ">: >:a:> >:b:> <:b:< :>  >:b:> >:a:> <:b:<"),
+--       timedAssertEqual
+--         1
+--         "Parse a type annotation with constraints"
+--         []
+--         [LabeledTree NoLabel (idtosu Return "NOT IMPLEMENTED") []]
+--         (tparse typeAnnotationParser ">: a <:Eq:< :>"),
+--       timedAssertEqual
+--         1
+--         "Parse a nested function signature with constraints"
+--         []
+--         [ LabeledTree
+--             TypeAnnotation
+--             (SknSyntaxUnit (SknTokenTypeLiteral SknTFunc) 0 Send)
+--             [ LabeledTree
+--                 TypeAnnotation
+--                 (idtosu Send "a")
+--                 [ LabeledTree
+--                     TypeAnnotation
+--                     (SknSyntaxUnit (SknTokenTypeLiteral (SknTVar "Num")) 0 Return)
+--                     []
+--                 ],
+--               LabeledTree
+--                 TypeAnnotation
+--                 (idtosu Send "b")
+--                 [ LabeledTree
+--                     TypeAnnotation
+--                     (SknSyntaxUnit (SknTokenTypeLiteral (SknTVar "Num")) 0 Return)
+--                     []
+--                 ],
+--               LabeledTree
+--                 TypeAnnotation
+--                 (idtosu Return "b")
+--                 [ LabeledTree
+--                     TypeAnnotation
+--                     (SknSyntaxUnit (SknTokenTypeLiteral (SknTVar "Num")) 0 Return)
+--                     []
+--                 ]
+--             ],
+--           LabeledTree
+--             TypeAnnotation
+--             (idtosu Send "b")
+--             [ LabeledTree
+--                 TypeAnnotation
+--                 (SknSyntaxUnit (SknTokenTypeLiteral (SknTVar "Num")) 0 Return)
+--                 []
+--             ],
+--           LabeledTree
+--             TypeAnnotation
+--             (idtosu Send "a")
+--             [ LabeledTree
+--                 TypeAnnotation
+--                 (SknSyntaxUnit (SknTokenTypeLiteral (SknTVar "Num")) 0 Return)
+--                 []
+--             ],
+--           LabeledTree
+--             TypeAnnotation
+--             (idtosu Return "b")
+--             [ LabeledTree
+--                 TypeAnnotation
+--                 (SknSyntaxUnit (SknTokenTypeLiteral (SknTVar "Num")) 0 Return)
+--                 []
+--             ]
+--         ]
+--         ( tparse
+--             typeAnnotationParser
+--             ">: >:a <:Num:< :> >:b <:Num:< :> <:b <:Num:< :< :>\
+--             \  >:b <:Num:< :> >:a <:Num:< :> <:b <:Num:< :<"
+--         )
+--     ]

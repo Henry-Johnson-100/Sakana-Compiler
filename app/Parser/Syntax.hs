@@ -19,7 +19,6 @@ module Parser.Syntax
     SknData (..),
     SknStaticTreeLabel (..),
     LabeledTree (..),
-    -- SknTree (..),
     SknToken (..),
     SknSyntaxUnit (..),
     sknData,
@@ -31,6 +30,7 @@ module Parser.Syntax
     joinLabeledTree,
     labeledTreeNode,
     labeledTreeChildren,
+    (@-<=),
   )
 where
 
@@ -98,7 +98,8 @@ data SknType
   | SknTString
   | SknTBool
   | SknTVar !String
-  | SknTStruct !String ![SknType]
+  | -- See SknTFunc for why SknTStruct no longer has a list of types
+    SknTStruct !String
   | -- SknTFunc doesn't need a list of types because it will hold them as its children
     -- in the tree representation (I think)
     SknTFunc
@@ -162,7 +163,7 @@ sknData svl =
         SknVChar _ -> SknTChar
         SknVString _ -> SknTString
         SknVBool _ -> SknTBool
-        SknVList _ -> SknTStruct "List" []
+        SknVList _ -> SknTStruct "List"
         SknVId _ -> SknTUntyped
     )
 
@@ -201,6 +202,14 @@ labeledTreeNode (LabeledTree _ x _) = Maybe.Just x
 labeledTreeChildren :: LabeledTree a -> [LabeledTree a]
 labeledTreeChildren EmptyLabeledTree = []
 labeledTreeChildren (LabeledTree _ _ cs) = cs
+
+infixl 9 @-<=
+
+(@-<=) :: LabeledTree a -> [LabeledTree a] -> Maybe.Maybe (LabeledTree a)
+EmptyLabeledTree @-<= _ = Maybe.Nothing
+(LabeledTree l b trs) @-<= ltrs = Maybe.Just (LabeledTree l b (trs ++ ltrs))
+
+-- (LabeledTree xl xsu xcs) @-<= [] = LabeledTree
 
 ----Instances-----------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------

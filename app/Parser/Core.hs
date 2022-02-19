@@ -24,6 +24,8 @@ module Parser.Core
     lampreyParameterParser,
     sknFunctionDefStatementParser,
     typeAnnotationParser,
+    typeAnnotationPrimitiveParser,
+    typeAnnotationConstraintParser,
   )
 where
 
@@ -39,6 +41,7 @@ Copyright 1999-2000, Daan Leijen; 2007, Paolo Martini. All rights reserved.
 -}
 
 import qualified Exception.Base as Exception
+import Parser.Syntax ((@-<=))
 import qualified Parser.Syntax as Syntax
 import Text.Parsec ((<?>), (<|>))
 import qualified Text.Parsec as Prs
@@ -62,8 +65,6 @@ type SknTypeLiteralParser u = CharStreamParser Syntax.SknType u
 type SknKeywordParser u = CharStreamParser Syntax.SknKeyword u
 
 type SknFlagParser u = CharStreamParser Syntax.SknFlag u
-
--- type SknIdParser u = CharStreamParser Syntax.SknId u
 
 type SknTokenParser u = CharStreamParser Syntax.SknToken u
 
@@ -213,7 +214,7 @@ sknIdPrimitiveParser = do
   return (idHead : idTail)
   where
     validIdSymbolParser :: CharStreamParser Char u
-    validIdSymbolParser = Prs.oneOf "!@#$%^&*-=_+,<>/?;:|`~{}"
+    validIdSymbolParser = Prs.oneOf "!@#$%^&*-=_+,<>/?|`~{}"
 
 sknIdParser :: SknValLiteralParser u
 sknIdParser = do
@@ -233,8 +234,8 @@ sknIdParser = do
 sknTIntegerParser :: SknTypeLiteralParser u
 sknTIntegerParser = Prs.string "Integer" >> return Syntax.SknTInteger
 
-skntTDoubleParser :: SknTypeLiteralParser u
-skntTDoubleParser = Prs.string "Double" >> return Syntax.SknTDouble
+sknTDoubleParser :: SknTypeLiteralParser u
+sknTDoubleParser = Prs.string "Double" >> return Syntax.SknTDouble
 
 sknTCharParser :: SknTypeLiteralParser u
 sknTCharParser = Prs.string "Char" >> return Syntax.SknTChar
@@ -248,16 +249,21 @@ sknTBoolParser = Prs.string "Bool" >> return Syntax.SknTBool
 sknTVarParser :: SknTypeLiteralParser u
 sknTVarParser = fmap (Syntax.SknTVar . Maybe.fromJust . Syntax.unId) sknIdParser
 
+sknTStructParser :: SknTypeLiteralParser u
+sknTStructParser = fmap (Syntax.SknTStruct . Maybe.fromJust . Syntax.unId) sknIdParser
+
 typeLiteralPrimitiveParser :: SknTypeLiteralParser u
 typeLiteralPrimitiveParser =
   tryChoices
     [ sknTIntegerParser,
-      skntTDoubleParser,
+      sknTDoubleParser,
       sknTCharParser,
       sknTStringParser,
       sknTBoolParser,
       sknTVarParser
     ]
+    <?> "type literal like: Integer, Double, Bool...\
+        \ or type variable like: a, type.something"
 
 -- sknTypeLiteralParser :: SknTypeLiteralParser u
 -- sknTypeLiteralParser = do
@@ -364,6 +370,13 @@ sknDataTreeParser st = do
   d <- suLiftTokenParser sknTokenDataParser st
   return [Tree.tree d]
 
+-- | Parse a primitive type literal to a tree
+-- primitive type literals are Integer, Double, Char, String, Bool, and TVar
+sknPrimitiveTypeLiteralTreeParser :: Syntax.SknScopeType -> SknTreeParser u
+sknPrimitiveTypeLiteralTreeParser st = do
+  typeLiteral <- suLiftTokenParser sknPrimitiveTokenTypeLiteralParser st
+  return [Tree.tree typeLiteral]
+
 -- #TEST
 sknTreeInBracketToLabeledTree ::
   Syntax.SknBracketType ->
@@ -373,10 +386,12 @@ sknTreeInBracketToLabeledTree ::
   SknLabeledTreeParser u
 sknTreeInBracketToLabeledTree bt st label p = do
   sknTokenBracketParser bt st Syntax.Open
+    <?> ("bracket like: " ++ UC.format (Syntax.SknBracket bt st Syntax.Open))
   Prs.spaces
   parseTrees <- p
   Prs.spaces
   sknTokenBracketParser bt st Syntax.Close
+    <?> ("bracket like: " ++ UC.format (Syntax.SknBracket bt st Syntax.Close))
   Prs.spaces
   (return . map (Syntax.liftTreeWithLabel label)) parseTrees
 
@@ -388,10 +403,12 @@ sknLabeledTreeInBracket ::
   SknLabeledTreeParser u
 sknLabeledTreeInBracket bt st p = do
   sknTokenBracketParser bt st Syntax.Open
+    <?> ("bracket like: " ++ UC.format (Syntax.SknBracket bt st Syntax.Open))
   Prs.spaces
   labeledTree <- p
   Prs.spaces
   sknTokenBracketParser bt st Syntax.Close
+    <?> ("bracket like: " ++ UC.format (Syntax.SknBracket bt st Syntax.Close))
   Prs.spaces
   return labeledTree
 
@@ -477,10 +494,114 @@ sknIdCallWithTypeAnnotation :: Syntax.SknScopeType -> SknLabeledTreeParser u
 sknIdCallWithTypeAnnotation st = do
   return []
 
--- #TEST
 -- #TODO
-typeAnnotationParser :: SknLabeledTreeParser u
-typeAnnotationParser = return []
+typeAnnotationParser :: Syntax.SknScopeType -> SknLabeledTreeParser u
+typeAnnotationParser st =
+  tryChoices
+    [ typeAnnotationPrimitiveParser st,
+      typeAnnotationConstraintParser st
+    ]
+
+-- | Parses a primitive type literal to a TypeAnnotation labeledTree
+-- primitive type literals are: Integer, Double, Char, String, Bool, and TVar
+typeAnnotationPrimitiveParser :: Syntax.SknScopeType -> SknLabeledTreeParser u
+typeAnnotationPrimitiveParser st =
+  sknTreeInBracketToLabeledTree
+    Syntax.Type
+    st
+    Syntax.TypeAnnotation
+    (sknPrimitiveTypeLiteralTreeParser st)
+    <?> ( show st
+            ++ " type annotation like: >:Integer:> or <:Integer:<\
+               \ for send and return type annotations respectively"
+        )
+
+typeAnnotationConstraintParser :: Syntax.SknScopeType -> SknLabeledTreeParser u
+typeAnnotationConstraintParser st =
+  sknLabeledTreeInBracket
+    Syntax.Type
+    st
+    (typeAnnotationConstraintParser' st)
+  where
+    typeAnnotationConstraintParser' :: Syntax.SknScopeType -> SknLabeledTreeParser u
+    typeAnnotationConstraintParser' st = do
+      baseLiteral <-
+        ( liftTreeParserToLabeledTreeParser Syntax.TypeAnnotation
+            . sknPrimitiveTypeLiteralTreeParser
+          )
+          st
+      Prs.spaces
+      constraintLiterals <-
+        (Prs.many1 . mapLiteralParserToConstraintParser . typeAnnotationPrimitiveParser)
+          Syntax.Return
+      Prs.spaces
+      let constraintLabeledTree =
+            head baseLiteral -<** constraintLiterals
+      return [constraintLabeledTree]
+    -- Will fail the parser if anything other than a SknTVar is passed in
+    -- Maps a labeled tree that has a SknTVar in its type annotation to an identical
+    -- tree with a SknTConstraint instead
+    mapLiteralParserToConstraintParser :: SknLabeledTreeParser u -> SknLabeledTreeParser u
+    mapLiteralParserToConstraintParser ltp = do
+      literal <- ltp
+      let hasSknTVarTuple = (getLabeledTreeHasSknTVar . head) literal
+      ( if fst hasSknTVarTuple
+          then
+            ( return
+                . UGen.listSingleton
+                . fmap (const (snd hasSknTVarTuple))
+                . head
+            )
+              literal
+          else
+            Prs.parserFail
+              "Unexpected primitive type literal,\
+              \ expected a type variable-like identifier for constraint."
+        )
+      where
+        getLabeledTreeHasSknTVar ::
+          Syntax.LabeledTree Syntax.SknSyntaxUnit -> (Bool, Syntax.SknSyntaxUnit)
+        getLabeledTreeHasSknTVar
+          ( Syntax.LabeledTree
+              Syntax.TypeAnnotation
+              ( Syntax.SknSyntaxUnit
+                  (Syntax.SknTokenTypeLiteral (Syntax.SknTVar varId))
+                  l
+                  st'
+                )
+              _
+            ) =
+            ( True,
+              Syntax.SknSyntaxUnit
+                (Syntax.SknTokenTypeLiteral (Syntax.SknTConstraint varId))
+                l
+                st'
+            )
+        getLabeledTreeHasSknTVar lt = (False, UC.defaultValue)
+
+-- | Parses type annotations like: List \>\:a\:\> (i.e. NOT surrounded by type brackets)
+-- # TEST
+-- #XXX NOW
+typeAnnotationStructLiteralParser :: Syntax.SknScopeType -> SknLabeledTreeParser u
+typeAnnotationStructLiteralParser st = do
+  structId <-
+    ( liftTreeParserToLabeledTreeParser Syntax.TypeAnnotation
+        . fmap (UGen.listSingleton . Tree.tree)
+        . flip suLiftTokenParser st
+        . fmap Syntax.SknTokenTypeLiteral
+      )
+      sknTStructParser
+  Prs.spaces
+  -- This might need to be many inBracket parsers, idk I'm too tired
+  structWithTypes <- Prs.many (typeAnnotationParser Syntax.Send)
+  Prs.spaces
+  let structTypeTree = (Maybe.fromJust . UGen.head') structId -<** structWithTypes
+  return [structTypeTree]
+
+-- #TODO
+-- #TEST
+typeAnnotationFunctionSignatureParser :: Syntax.SknScopeType -> SknLabeledTreeParser u
+typeAnnotationFunctionSignatureParser st = return []
 
 -- #TEST
 -- #TODO
