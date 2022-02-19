@@ -747,20 +747,20 @@ typeAnnotationConstraintParserTests =
         1
         "Parse a simple constraint"
         []
-        [typeAnnoTree SknTVar "a" Send @-<= [typeAnnoTree SknTConstraint "Num" Return]]
+        [typeAnnoTree SknTVar "a" Send @-<= [typeAnnoTree SknTVar "Num" Return]]
         (tparse (typeAnnotationConstraintParser Send) ">:a <:Num:< :>"),
       timedAssertEqual
         1
         "Parse a simple constraint"
         []
-        [typeAnnoTree SknTVar "a" Return @-<= [typeAnnoTree SknTConstraint "Num" Return]]
+        [typeAnnoTree SknTVar "a" Return @-<= [typeAnnoTree SknTVar "Num" Return]]
         (tparse (typeAnnotationConstraintParser Return) "<:a <:Num:< :<"),
       timedAssertEqual
         1
         "Parse a type with multiple constraints"
         []
         [ typeAnnoTree SknTVar "a" Send
-            @-<= ((\x -> typeAnnoTree SknTConstraint x Return) <$> ["Semigroup", "Monad"])
+            @-<= ((\x -> typeAnnoTree SknTVar x Return) <$> ["Semigroup", "Monad"])
         ]
         ( tparse
             (typeAnnotationConstraintParser Send)
@@ -771,7 +771,7 @@ typeAnnotationConstraintParserTests =
         "Parse a type with an arbitrary number of constraints"
         []
         [ typeAnnoTree SknTVar "a" Send
-            @-<= ( (\x -> typeAnnoTree SknTConstraint x Return)
+            @-<= ( (\x -> typeAnnoTree SknTVar x Return)
                      <$> ["Semigroup", "Monad", "Foldable"]
                  )
         ]
@@ -794,7 +794,7 @@ typeAnnotationStructParserTests =
         1
         "Parse a simple struct literal"
         []
-        [typeAnnoTree SknTStruct "List" Send @-<= [typeAnnoTree SknTVar "a" Send]]
+        [typeAnnoTree SknTVar "List" Send @-<= [typeAnnoTree SknTVar "a" Send]]
         (tparse (typeAnnotationStructLiteralParser Send) ">:List >:a:> :>"),
       timedAssertEqual
         1
@@ -806,14 +806,14 @@ typeAnnotationStructParserTests =
         1
         "Parse a simple return struct literal"
         []
-        [typeAnnoTree SknTStruct "List" Return @-<= [typeAnnoTree SknTVar "a" Send]]
+        [typeAnnoTree SknTVar "List" Return @-<= [typeAnnoTree SknTVar "a" Send]]
         (tparse (typeAnnotationStructLiteralParser Return) "<: List >:a:> :<"),
       timedAssertEqual
         1
         "Parse a struct with arbritrary number of member types"
         []
         -- Work smarter not harder
-        [ typeAnnoTree SknTStruct "Tri" Send
+        [ typeAnnoTree SknTVar "Tri" Send
             @-<= ((\x -> typeAnnoTree SknTVar x Send) <$> ["a", "b", "c"])
         ]
         (tparse (typeAnnotationStructLiteralParser Send) ">: Tri >:a:> >:b:> >:c:> :>"),
@@ -821,8 +821,8 @@ typeAnnotationStructParserTests =
         1
         "Parse a struct with struct type members"
         []
-        [ typeAnnoTree SknTStruct "LabeledTree" Send
-            @-<= [ typeAnnoTree SknTStruct "Tree" Send
+        [ typeAnnoTree SknTVar "LabeledTree" Send
+            @-<= [ typeAnnoTree SknTVar "Tree" Send
                      @-<= [typeAnnoTree SknTVar "a" Send]
                  ]
         ]
@@ -834,7 +834,7 @@ typeAnnotationStructParserTests =
         1
         "Parse a struct with function type members"
         []
-        [ typeAnnoTree SknTStruct "Something" Send
+        [ typeAnnoTree SknTVar "Something" Send
             @-<= [ typeAnnoTree (const SknTFunc) "" Send
                      @-<= [ typeAnnoTree SknTVar "a" Send,
                             typeAnnoTree SknTVar "b" Return
@@ -891,13 +891,13 @@ typeAnnotationFunctionSignatureParserTests =
                      @-<= ((\x -> typeAnnoTree SknTVar x Send) <$> ["a", "b"])
                      @-<= [typeAnnoTree SknTVar "b" Return],
                    typeAnnoTree SknTVar "b" Send,
-                   typeAnnoTree SknTStruct "t" Send
+                   typeAnnoTree SknTVar "t" Send
                      @-<= [ typeAnnoTree SknTVar "a" Send,
-                            typeAnnoTree SknTConstraint "Foldable" Return
+                            typeAnnoTree SknTVar "Foldable" Return
                           ],
-                   typeAnnoTree SknTStruct "t" Send
+                   typeAnnoTree SknTVar "t" Send
                      @-<= [ typeAnnoTree SknTVar "b" Send,
-                            typeAnnoTree SknTConstraint "Foldable" Return
+                            typeAnnoTree SknTVar "Foldable" Return
                           ]
                  ]
         ]
@@ -919,20 +919,20 @@ typeAnnotationFunctionSignatureParserTests =
         ""
         []
         [ typeAnnoTree (const SknTFunc) "" Return
-            @-<= [ typeAnnoTree SknTStruct "ParsecT" Send
-                     @-<= [ typeAnnoTree SknTStruct "List" Send
+            @-<= [ typeAnnoTree SknTVar "ParsecT" Send
+                     @-<= [ typeAnnoTree SknTVar "List" Send
                               @-<= [typeAnnoTree (const SknTChar) "" Send],
                             typeAnnoTree SknTVar "u" Send,
                             typeAnnoTree SknTVar "Identity" Send,
                             typeAnnoTree SknTVar "a" Send
-                              @-<= [typeAnnoTree SknTConstraint "Show" Return]
+                              @-<= [typeAnnoTree SknTVar "Show" Return]
                           ],
                    typeAnnoTree SknTVar "SourceName" Send,
                    typeAnnoTree (const SknTString) "" Send,
-                   typeAnnoTree SknTStruct "Either" Return
+                   typeAnnoTree SknTVar "Either" Return
                      @-<= [ typeAnnoTree SknTVar "ParseError" Send,
                             typeAnnoTree SknTVar "a" Send
-                              @-<= [typeAnnoTree SknTConstraint "Show" Return]
+                              @-<= [typeAnnoTree SknTVar "Show" Return]
                           ]
                  ]
         ]
@@ -957,15 +957,15 @@ typeAnnotationFunctionSignatureParserTests =
         "Parse a function signature with structs that have function signatures"
         "For [a -> b] -> [a] -> [b]"
         [ typeAnnoTree (const SknTFunc) "" Return
-            @-<= [ typeAnnoTree SknTStruct "List" Send
+            @-<= [ typeAnnoTree SknTVar "List" Send
                      @-<= [ typeAnnoTree (const SknTFunc) "" Send
                               @-<= [ typeAnnoTree SknTVar "a" Send,
                                      typeAnnoTree SknTVar "b" Return
                                    ]
                           ],
-                   typeAnnoTree SknTStruct "List" Send
+                   typeAnnoTree SknTVar "List" Send
                      @-<= [typeAnnoTree SknTVar "a" Send],
-                   typeAnnoTree SknTStruct "List" Return
+                   typeAnnoTree SknTVar "List" Return
                      @-<= [typeAnnoTree SknTVar "b" Send]
                  ]
         ]
@@ -984,15 +984,15 @@ typeAnnotationFunctionSignatureParserTests =
         "Parse a function signature with non-syntactic whitespace"
         []
         [ typeAnnoTree (const SknTFunc) "" Return
-            @-<= [ typeAnnoTree SknTStruct "List" Send
+            @-<= [ typeAnnoTree SknTVar "List" Send
                      @-<= [ typeAnnoTree (const SknTFunc) "" Send
                               @-<= [ typeAnnoTree SknTVar "a" Send,
                                      typeAnnoTree SknTVar "b" Return
                                    ]
                           ],
-                   typeAnnoTree SknTStruct "List" Send
+                   typeAnnoTree SknTVar "List" Send
                      @-<= [typeAnnoTree SknTVar "a" Send],
-                   typeAnnoTree SknTStruct "List" Return
+                   typeAnnoTree SknTVar "List" Return
                      @-<= [typeAnnoTree SknTVar "b" Send]
                  ]
         ]

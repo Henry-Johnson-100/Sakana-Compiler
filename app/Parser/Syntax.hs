@@ -98,12 +98,9 @@ data SknType
   | SknTString
   | SknTBool
   | SknTVar !String
-  | -- See SknTFunc for why SknTStruct no longer has a list of types
-    SknTStruct !String
   | -- SknTFunc doesn't need a list of types because it will hold them as its children
     -- in the tree representation (I think)
     SknTFunc
-  | SknTConstraint !String
   | SknTUntyped
   deriving (Show, Eq, UC.Format)
 
@@ -115,7 +112,6 @@ data SknValLiteral
   | SknVString !String
   | SknVBool !Bool
   | SknVId !String
-  | SknVList ![SknValLiteral]
   deriving (Show, Eq, UC.Format)
 
 data SknData = SknData {sknDataLiteral :: !SknValLiteral, sknDataType :: !SknType}
@@ -163,7 +159,6 @@ sknData svl =
         SknVChar _ -> SknTChar
         SknVString _ -> SknTString
         SknVBool _ -> SknTBool
-        SknVList _ -> SknTStruct "List"
         SknVId _ -> SknTUntyped
     )
 

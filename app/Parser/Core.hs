@@ -236,8 +236,8 @@ sknTBoolParser = Prs.string "Bool" >> return Syntax.SknTBool
 sknTVarParser :: SknTypeLiteralParser u
 sknTVarParser = fmap (Syntax.SknTVar . Maybe.fromJust . Syntax.unId) sknIdParser
 
-sknTStructParser :: SknTypeLiteralParser u
-sknTStructParser = fmap (Syntax.SknTStruct . Maybe.fromJust . Syntax.unId) sknIdParser
+-- sknTStructParser :: SknTypeLiteralParser u
+-- sknTStructParser = fmap (Syntax.SknTStruct . Maybe.fromJust . Syntax.unId) sknIdParser
 
 typeLiteralPrimitiveParser :: SknTypeLiteralParser u
 typeLiteralPrimitiveParser =
@@ -429,6 +429,9 @@ typeAnnotationPrimitiveParser st =
                \ for send and return type annotations respectively"
         )
 
+-- fmap (map (Syntax.liftTreeWithLabel Syntax.TypeAnnotation))
+--   . sknPrimitiveTypeLiteralTreeParser
+
 typeAnnotationConstraintParser :: Syntax.SknScopeType -> SknLabeledTreeParser u
 typeAnnotationConstraintParser st =
   sknLabeledTreeInBracket
@@ -445,52 +448,12 @@ typeAnnotationConstraintParser st =
           st
       Prs.spaces
       constraintLiterals <-
-        (Prs.many1 . mapLiteralParserToConstraintParser . typeAnnotationPrimitiveParser)
+        (Prs.many1 . typeAnnotationPrimitiveParser)
           Syntax.Return
       Prs.spaces
       let constraintLabeledTree =
             head baseLiteral @-<*= constraintLiterals
       return [constraintLabeledTree]
-    -- Will fail the parser if anything other than a SknTVar is passed in
-    -- Maps a labeled tree that has a SknTVar in its type annotation to an identical
-    -- tree with a SknTConstraint instead
-    mapLiteralParserToConstraintParser :: SknLabeledTreeParser u -> SknLabeledTreeParser u
-    mapLiteralParserToConstraintParser ltp = do
-      literal <- ltp
-      let hasSknTVarTuple = (getLabeledTreeHasSknTVar . head) literal
-      ( if fst hasSknTVarTuple
-          then
-            ( return
-                . UGen.listSingleton
-                . fmap (const (snd hasSknTVarTuple))
-                . head
-            )
-              literal
-          else
-            Prs.parserFail
-              "Unexpected primitive type literal,\
-              \ expected a type variable-like identifier for constraint."
-        )
-      where
-        getLabeledTreeHasSknTVar ::
-          Syntax.LabeledTree Syntax.SknSyntaxUnit -> (Bool, Syntax.SknSyntaxUnit)
-        getLabeledTreeHasSknTVar
-          ( Syntax.LabeledTree
-              Syntax.TypeAnnotation
-              ( Syntax.SknSyntaxUnit
-                  (Syntax.SknTokenTypeLiteral (Syntax.SknTVar varId))
-                  l
-                  st'
-                )
-              _
-            ) =
-            ( True,
-              Syntax.SknSyntaxUnit
-                (Syntax.SknTokenTypeLiteral (Syntax.SknTConstraint varId))
-                l
-                st'
-            )
-        getLabeledTreeHasSknTVar lt = (False, UC.defaultValue)
 
 -- | Parses type annotations like: List \>\:a\:\>
 typeAnnotationStructLiteralParser :: Syntax.SknScopeType -> SknLabeledTreeParser u
@@ -508,7 +471,7 @@ typeAnnotationStructLiteralParser st =
             . flip suLiftTokenParser st
             . fmap Syntax.SknTokenTypeLiteral
           )
-          sknTStructParser
+          sknTVarParser
       Prs.spaces
       -- This might need to be many inBracket parsers, idk I'm too tired
       structWithTypes <- Prs.many (typeAnnotationParser Syntax.Send)
