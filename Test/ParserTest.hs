@@ -147,6 +147,12 @@ valueLiteralParserTests =
         (tparse sknValLiteralParser "\".\""),
       timedAssertEqual
         1
+        "literal parser parses strings that contain literal chars"
+        []
+        (SknVString "This \'a\' is a char")
+        (tparse sknValLiteralParser "\"This \'a\' is a char\""),
+      timedAssertEqual
+        1
         "literal parser differentiates positive integers"
         []
         (SknVInteger 14)
@@ -233,7 +239,19 @@ valueLiteralParserTests =
         "Can parse an ill-formed list of one type (2)"
         []
         ((SknVList . map SknVInteger) [1, 2, 3, 4, 6])
-        (tparse valLiteralListParser "[     1,   2,   3, 4   ,  6 ]")
+        (tparse valLiteralListParser "[     1,   2,   3, 4   ,  6 ]"),
+      timedAssertEqual
+        1
+        "Parser fails malformed token"
+        "12.bool.fam"
+        True
+        (tparseAnyFail sknValLiteralParser "12.bool.fam"),
+      timedAssertEqual
+        1
+        "Parser fails malformed token"
+        "\"Hello\".sir.12.or_madam"
+        True
+        (tparseAnyFail sknValLiteralParser "\"Hello\".sir.12.or_madam")
     ]
 
 reservedWordParserTests =

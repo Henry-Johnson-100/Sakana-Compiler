@@ -82,7 +82,9 @@ type SknLabeledTreeParser u =
 ------------------------------------------------------------------------------------------
 valLiteralBoolParser :: SknValLiteralParser u
 valLiteralBoolParser = do
-  b <- Prs.string "True" <|> Prs.string "False"
+  b <-
+    Prs.string "True" <|> Prs.string "False"
+      <?> "\"True\" or \"False\" Boolean literal"
   (return . Syntax.SknVBool . readBool) b
   where
     readBool :: String -> Bool
@@ -91,8 +93,8 @@ valLiteralBoolParser = do
 valLiteralCharParser :: SknValLiteralParser u
 valLiteralCharParser = do
   Prs.char '\''
-  char <- Prs.anyChar
-  Prs.char '\''
+  char <- Prs.anyChar <?> "char"
+  Prs.char '\'' <?> "single-quotation to close char literal"
   (return . Syntax.SknVChar) char
 
 valLiteralStringParser :: SknValLiteralParser u
@@ -103,37 +105,40 @@ valLiteralStringParser = do
       ( tryChoices
           [removeInvisibleSpacing, unescapeEscapedSpaces, anyCharAsString]
       )
-      (Prs.char '"')
+      (Prs.char '"' <?> "double-quotation to close string literal")
   (return . Syntax.SknVString . concat) string
   where
     anyCharAsString :: CharStreamParser String u
     anyCharAsString = do
-      ch <- Prs.anyChar
+      ch <- Prs.anyChar <?> "any symbol in string literal"
       return [ch]
     removeInvisibleSpacing :: CharStreamParser String u
     removeInvisibleSpacing = do
-      tryChoices [Prs.tab, Prs.newline, Prs.crlf]
+      tryChoices [Prs.tab, Prs.newline, Prs.crlf] <?> ""
       return ""
     unescapeEscapedSpaces :: CharStreamParser String u
     unescapeEscapedSpaces =
       tryChoices
         [unescapeEscapedNewline, unescapeEscapedTab, unescapeEscapedCarriageReturn]
+        <?> ""
       where
         unescapeEscapedNewline :: CharStreamParser String u
         unescapeEscapedNewline = do
-          Prs.string "\\n"
+          Prs.string "\\n" <?> ""
           return "\n"
         unescapeEscapedTab :: CharStreamParser String u
         unescapeEscapedTab = do
-          Prs.string "\\t"
+          Prs.string "\\t" <?> ""
           return "\t"
         unescapeEscapedCarriageReturn :: CharStreamParser String u
         unescapeEscapedCarriageReturn = do
-          Prs.string "\\r"
+          Prs.string "\\r" <?> ""
           return "\r"
 
 literalNegationParser :: CharStreamParser (Maybe.Maybe Char) u
 literalNegationParser = (Prs.optionMaybe . Prs.char) '-'
+
+-- #TODO combine integer and double parsers desu
 
 valLiteralIntegerParser :: SknValLiteralParser u
 valLiteralIntegerParser = do
@@ -155,7 +160,9 @@ valLiteralDoubleParser = do
     doubleSuffix :: CharStreamParser String u
     doubleSuffix = do
       decimal <- Prs.char '.'
-      remainingDigits <- Prs.many1 Prs.digit
+      remainingDigits <-
+        Prs.many1 Prs.digit
+          <?> "at least one digit following decimal point"
       return (decimal : remainingDigits)
 
 valLiteralPrimitiveParser :: SknValLiteralParser u
@@ -169,29 +176,34 @@ valLiteralPrimitiveParser =
       sknIdParser
     ]
 
+-- (valLiteralCharParser <|> valLiteralStringParser)
+--   <|> tryChoices [valLiteralDoubleParser, valLiteralIntegerParser]
+--   <|> tryChoices [valLiteralBoolParser, sknIdParser]
+
 valLiteralListParser :: SknValLiteralParser u
 valLiteralListParser = do
   Prs.char '['
-  Prs.spaces
+  nsSpaces
   maybeListContents <- Prs.optionMaybe listContentParser
-  Prs.spaces
-  Prs.char ']'
+  nsSpaces
+  Prs.char ']' <?> "list closing bracket \']\'"
   (return . Syntax.SknVList . Maybe.fromMaybe []) maybeListContents
   where
     listContentParser :: CharStreamParser [Syntax.SknValLiteral] u
     listContentParser = do
-      Prs.spaces
+      nsSpaces
       headItem <- sknValLiteralParser
       tailItems <- Prs.many listRetroContentParser
       let listContents = headItem : tailItems
       return listContents
     listRetroContentParser :: SknValLiteralParser u
     listRetroContentParser = do
-      Prs.spaces
-      Prs.char ','
-      Prs.spaces
-      literal <- sknValLiteralParser
-      Prs.spaces
+      nsSpaces
+      Prs.char ',' <?> "comma delimiter between list items"
+      nsSpaces
+      -- #TODO this is going to have to be all expressions!
+      literal <- sknValLiteralParser <?> "an expression or value literal"
+      nsSpaces
       return literal
 
 sknValLiteralParser :: SknValLiteralParser u
@@ -679,6 +691,20 @@ allSpaces :: CharStreamParser String u
 allSpaces =
   Prs.many $ tryChoices [Prs.char '\n', Prs.char '\t', Prs.char '\r', Prs.char ' ']
 
+-- | Skips zero or more spaces and produces no parseError Message
+nsSpaces :: CharStreamParser () u
+nsSpaces = Prs.spaces <?> ""
+
+-- | Parse any character that is not a space, tab, newline, or carriage return
+notSpace :: CharStreamParser Char u
+notSpace = Prs.noneOf " \t\n\r"
+
+-- | Looks for space, does not consume whether pass or fail
+--
+-- Used mostly after parsing a value literal to detect malformed input like 12\"Hello\"
+sSpace :: CharStreamParser Char u
+sSpace = Prs.lookAhead Prs.space
+
 infixl 9 -<**
 
 (-<**) :: Syntax.LabeledTree a -> [[Syntax.LabeledTree a]] -> Syntax.LabeledTree a
@@ -913,3 +939,6 @@ showWindow :: Int -> String -> String
 showWindow n = take windowSize . drop (((-) n . div windowSize) 2)
   where
     windowSize = 30
+
+tp :: (Show a) => CharStreamParser a () -> String -> IO ()
+tp = Prs.parseTest
