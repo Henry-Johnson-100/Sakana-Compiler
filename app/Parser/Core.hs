@@ -372,12 +372,12 @@ sknTreeInBracketToLabeledTree ::
   SknLabeledTreeParser u
 sknTreeInBracketToLabeledTree bt st label p = do
   sknTokenBracketParser bt st Syntax.Open
-    <?> ("bracket like: " ++ UC.format (Syntax.SknBracket bt st Syntax.Open))
+    <?> ("bracket like " ++ UC.format (Syntax.SknBracket bt st Syntax.Open))
   Prs.spaces
   parseTrees <- p
   Prs.spaces
   sknTokenBracketParser bt st Syntax.Close
-    <?> ("bracket like: " ++ UC.format (Syntax.SknBracket bt st Syntax.Close))
+    <?> ("bracket like " ++ UC.format (Syntax.SknBracket bt st Syntax.Close))
   Prs.spaces
   (return . map (Syntax.liftTreeWithLabel label)) parseTrees
 
@@ -389,12 +389,12 @@ sknLabeledTreeInBracket ::
   SknLabeledTreeParser u
 sknLabeledTreeInBracket bt st p = do
   sknTokenBracketParser bt st Syntax.Open
-    <?> ("bracket like: " ++ UC.format (Syntax.SknBracket bt st Syntax.Open))
+    <?> ("bracket like " ++ UC.format (Syntax.SknBracket bt st Syntax.Open))
   Prs.spaces
   labeledTree <- p
   Prs.spaces
   sknTokenBracketParser bt st Syntax.Close
-    <?> ("bracket like: " ++ UC.format (Syntax.SknBracket bt st Syntax.Close))
+    <?> ("bracket like " ++ UC.format (Syntax.SknBracket bt st Syntax.Close))
   Prs.spaces
   return labeledTree
 
@@ -566,8 +566,6 @@ typeAnnotationConstraintParser st =
         getLabeledTreeHasSknTVar lt = (False, UC.defaultValue)
 
 -- | Parses type annotations like: List \>\:a\:\>
--- # TEST
--- #XXX NOW
 typeAnnotationStructLiteralParser :: Syntax.SknScopeType -> SknLabeledTreeParser u
 typeAnnotationStructLiteralParser st =
   sknLabeledTreeInBracket

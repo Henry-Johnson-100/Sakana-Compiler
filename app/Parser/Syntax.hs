@@ -205,9 +205,9 @@ labeledTreeChildren (LabeledTree _ _ cs) = cs
 
 infixl 9 @-<=
 
-(@-<=) :: LabeledTree a -> [LabeledTree a] -> Maybe.Maybe (LabeledTree a)
-EmptyLabeledTree @-<= _ = Maybe.Nothing
-(LabeledTree l b trs) @-<= ltrs = Maybe.Just (LabeledTree l b (trs ++ ltrs))
+(@-<=) :: LabeledTree a -> [LabeledTree a] -> LabeledTree a
+EmptyLabeledTree @-<= _ = EmptyLabeledTree
+(LabeledTree l b trs) @-<= ltrs = LabeledTree l b (trs ++ ltrs)
 
 -- (LabeledTree xl xsu xcs) @-<= [] = LabeledTree
 

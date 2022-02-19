@@ -736,6 +736,9 @@ primitiveTypeAnnotationSendParserTests =
         ]
     )
 
+typeAnnoTree tcons tid st =
+  LabeledTree TypeAnnotation (SknSyntaxUnit (SknTokenTypeLiteral (tcons tid)) 1 st) []
+
 typeAnnotationConstraintParserTests =
   testGroup
     "Type Annotation Constraint Parser Tests"
@@ -743,54 +746,20 @@ typeAnnotationConstraintParserTests =
         1
         "Parse a simple constraint"
         []
-        [ LabeledTree
-            TypeAnnotation
-            (SknSyntaxUnit (SknTokenTypeLiteral (SknTVar "a")) 1 Send)
-            [ LabeledTree
-                TypeAnnotation
-                (SknSyntaxUnit (SknTokenTypeLiteral (SknTConstraint "Num")) 1 Return)
-                []
-            ]
-        ]
+        [typeAnnoTree SknTVar "a" Send @-<= [typeAnnoTree SknTConstraint "Num" Return]]
         (tparse (typeAnnotationConstraintParser Send) ">:a <:Num:< :>"),
       timedAssertEqual
         1
         "Parse a simple constraint"
         []
-        [ LabeledTree
-            TypeAnnotation
-            (SknSyntaxUnit (SknTokenTypeLiteral (SknTVar "a")) 1 Return)
-            [ LabeledTree
-                TypeAnnotation
-                (SknSyntaxUnit (SknTokenTypeLiteral (SknTConstraint "Num")) 1 Return)
-                []
-            ]
-        ]
+        [typeAnnoTree SknTVar "a" Return @-<= [typeAnnoTree SknTConstraint "Num" Return]]
         (tparse (typeAnnotationConstraintParser Return) "<:a <:Num:< :<"),
       timedAssertEqual
         1
         "Parse a type with multiple constraints"
         []
-        [ LabeledTree
-            TypeAnnotation
-            (SknSyntaxUnit (SknTokenTypeLiteral (SknTVar "a")) 1 Send)
-            [ LabeledTree
-                TypeAnnotation
-                ( SknSyntaxUnit
-                    (SknTokenTypeLiteral (SknTConstraint "Semigroup"))
-                    1
-                    Return
-                )
-                [],
-              LabeledTree
-                TypeAnnotation
-                ( SknSyntaxUnit
-                    (SknTokenTypeLiteral (SknTConstraint "Monad"))
-                    1
-                    Return
-                )
-                []
-            ]
+        [ typeAnnoTree SknTVar "a" Send
+            @-<= ((\x -> typeAnnoTree SknTConstraint x Return) <$> ["Semigroup", "Monad"])
         ]
         ( tparse
             (typeAnnotationConstraintParser Send)
@@ -800,34 +769,10 @@ typeAnnotationConstraintParserTests =
         1
         "Parse a type with an arbitrary number of constraints"
         []
-        [ LabeledTree
-            TypeAnnotation
-            (SknSyntaxUnit (SknTokenTypeLiteral (SknTVar "a")) 1 Send)
-            [ LabeledTree
-                TypeAnnotation
-                ( SknSyntaxUnit
-                    (SknTokenTypeLiteral (SknTConstraint "Semigroup"))
-                    1
-                    Return
-                )
-                [],
-              LabeledTree
-                TypeAnnotation
-                ( SknSyntaxUnit
-                    (SknTokenTypeLiteral (SknTConstraint "Monad"))
-                    1
-                    Return
-                )
-                [],
-              LabeledTree
-                TypeAnnotation
-                ( SknSyntaxUnit
-                    (SknTokenTypeLiteral (SknTConstraint "Foldable"))
-                    1
-                    Return
-                )
-                []
-            ]
+        [ typeAnnoTree SknTVar "a" Send
+            @-<= ( (\x -> typeAnnoTree SknTConstraint x Return)
+                     <$> ["Semigroup", "Monad", "Foldable"]
+                 )
         ]
         ( tparse
             (typeAnnotationConstraintParser Send)
@@ -848,15 +793,7 @@ typeAnnotationStructParserTests =
         1
         "Parse a simple struct literal"
         []
-        [ LabeledTree
-            TypeAnnotation
-            (SknSyntaxUnit (SknTokenTypeLiteral (SknTStruct "List")) 1 Send)
-            [ LabeledTree
-                TypeAnnotation
-                (SknSyntaxUnit (SknTokenTypeLiteral (SknTVar "a")) 1 Send)
-                []
-            ]
-        ]
+        [typeAnnoTree SknTStruct "List" Send @-<= [typeAnnoTree SknTVar "a" Send]]
         (tparse (typeAnnotationStructLiteralParser Send) ">:List >:a:> :>"),
       timedAssertEqual
         1
@@ -868,16 +805,45 @@ typeAnnotationStructParserTests =
         1
         "Parse a simple return struct literal"
         []
-        [ LabeledTree
-            TypeAnnotation
-            (SknSyntaxUnit (SknTokenTypeLiteral (SknTStruct "List")) 1 Return)
-            [ LabeledTree
-                TypeAnnotation
-                (SknSyntaxUnit (SknTokenTypeLiteral (SknTVar "a")) 1 Send)
-                []
-            ]
+        [typeAnnoTree SknTStruct "List" Return @-<= [typeAnnoTree SknTVar "a" Send]]
+        (tparse (typeAnnotationStructLiteralParser Return) "<: List >:a:> :<"),
+      timedAssertEqual
+        1
+        "Parse a struct with arbritrary number of member types"
+        []
+        -- Work smarter not harder
+        [ typeAnnoTree SknTStruct "Tri" Send
+            @-<= ((\x -> typeAnnoTree SknTVar x Send) <$> ["a", "b", "c"])
         ]
-        (tparse (typeAnnotationStructLiteralParser Return) "<: List >:a:> :<")
+        (tparse (typeAnnotationStructLiteralParser Send) ">: Tri >:a:> >:b:> >:c:> :>"),
+      timedAssertEqual
+        1
+        "Parse a struct with struct type members"
+        []
+        [ typeAnnoTree SknTStruct "List" Send
+            @-<= [ typeAnnoTree SknTStruct "Tree" Send
+                     @-<= [typeAnnoTree SknTVar "a" Send]
+                 ]
+        ]
+        ( tparse
+            (typeAnnotationStructLiteralParser Send)
+            ">: LabeledTree >:Tree >:a:> :> :>"
+        ),
+      timedAssertEqual
+        1
+        "Parse a struct with function type members"
+        []
+        [ typeAnnoTree SknTStruct "Something" Send
+            @-<= [ typeAnnoTree (const SknTFunc) "" Send
+                     @-<= [ typeAnnoTree SknTVar "a" Send,
+                            typeAnnoTree SknTVar "b" Return
+                          ]
+                 ]
+        ]
+        ( tparse
+            (typeAnnotationStructLiteralParser Send)
+            ">: Something >: >:a:> <:b:<  :>  :>"
+        )
     ]
 
 -- miscTypeAnnotationParserTests =
